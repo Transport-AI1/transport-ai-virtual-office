@@ -59,7 +59,7 @@ function StatusPill({ status }: { status: Agent["status"] }) {
 }
 
 export default function Home() {
-  const [active, setActive] = useState("overview");
+  const [active, setActive] = useState("office3d");
   const [agents, setAgents] = useState(initialAgents);
   const [tasks, setTasks] = useState(initialTasks);
   const [showTaskForm, setShowTaskForm] = useState(false);
