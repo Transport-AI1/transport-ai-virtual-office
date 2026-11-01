@@ -72,7 +72,8 @@ export default function Home() {
   const [directorPlan, setDirectorPlan] = useState("");
   const [directorError, setDirectorError] = useState("");
   const [directorModel, setDirectorModel] = useState("");
-  const [directorLoading, setDirectorLoading] = useState(false);\n  const [storageReady, setStorageReady] = useState(false);
+  const [directorLoading, setDirectorLoading] = useState(false);
+  const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
     try {
