@@ -18,7 +18,7 @@ const staff = [
   { id:"security", name:"Seguridad y calidad", role:"Auditoría · Protección", area:"Seguridad", color:"#a6b4c8", mission:"Revisa seguridad, privacidad, permisos, calidad y riesgos de cada proyecto.", duties:["Revisar privacidad y permisos","Auditar entregables","Definir pruebas de calidad","Detectar riesgos"], tools:["Seguridad","QA","Privacidad"] }
 ] as const;
 
-type Task = { id:string; title:string; agentId:string; done:boolean; createdAt:string };
+type Task = { id:string | number; title:string; owner:string; priority:"Alta"|"Media"|"Baja"; done:boolean; createdAt?:string };
 type ChatLine = { role:"user"|"assistant"; content:string };
 
 function Desk({color,selected}:{color:string;selected:boolean}) {
@@ -101,25 +101,25 @@ export default function Office3D() {
   const [model,setModel] = useState("");
   const [loaded,setLoaded] = useState(false);
   const agent = staff[selected];
-  const agentTasks = useMemo(()=>tasks.filter(t=>t.agentId===agent.id),[tasks,agent.id]);
+  const agentTasks = useMemo(()=>tasks.filter(t=>t.owner===agent.name),[tasks,agent.id]);
   const lines = chat[agent.id] || [];
 
   useEffect(()=>{
     try {
-      const savedTasks=localStorage.getItem("transport-ai-office-tasks");
+      const savedTasks=localStorage.getItem("transport-ai-dashboard-tasks");
       const savedChat=localStorage.getItem("transport-ai-office-chat");
       if(savedTasks) setTasks(JSON.parse(savedTasks));
       if(savedChat) setChat(JSON.parse(savedChat));
     } catch {}
     setLoaded(true);
   },[]);
-  useEffect(()=>{if(loaded)localStorage.setItem("transport-ai-office-tasks",JSON.stringify(tasks));},[tasks,loaded]);
+  useEffect(()=>{if(loaded)localStorage.setItem("transport-ai-dashboard-tasks",JSON.stringify(tasks));},[tasks,loaded]);
   useEffect(()=>{if(loaded)localStorage.setItem("transport-ai-office-chat",JSON.stringify(chat));},[chat,loaded]);
 
   function enterRoom(index:number) { setSelected(index); setView("workspace"); setTab("profile"); setError(""); }
   function addTask() {
     if(!taskTitle.trim()) return;
-    setTasks(current=>[{id:crypto.randomUUID(),title:taskTitle.trim(),agentId:agent.id,done:false,createdAt:new Date().toISOString()},...current]);
+    setTasks(current=>[{id:crypto.randomUUID(),title:taskTitle.trim(),owner:agent.name,priority:"Media",done:false,createdAt:new Date().toISOString()},...current]);
     setTaskTitle("");
     setTab("tasks");
   }
@@ -202,7 +202,7 @@ export default function Office3D() {
       {staff.map((person,index)=><article key={person.id} className="panel p-4">
         <div className="flex items-center gap-3"><div className="avatar" style={{background:person.color+"22",color:person.color}}><UserRound size={18}/></div><div className="min-w-0"><div className="text-sm font-semibold">{person.name}</div><div className="text-[10px] text-slate-500 mt-1">{person.role}</div></div></div>
         <p className="text-xs text-slate-500 leading-relaxed mt-3 min-h-[40px]">{person.mission}</p>
-        <div className="flex items-center justify-between mt-4 pt-3 border-t" style={{borderColor:"var(--line)"}}><span className="text-[10px] text-slate-500">{tasks.filter(t=>t.agentId===person.id&&!t.done).length} tareas pendientes</span><button className="action-button !py-2 !px-3" onClick={()=>enterRoom(index)}>Entrar en despacho <DoorOpen size={13}/></button></div>
+        <div className="flex items-center justify-between mt-4 pt-3 border-t" style={{borderColor:"var(--line)"}}><span className="text-[10px] text-slate-500">{tasks.filter(t=>t.owner===person.name&&!t.done).length} tareas pendientes</span><button className="action-button !py-2 !px-3" onClick={()=>enterRoom(index)}>Entrar en despacho <DoorOpen size={13}/></button></div>
       </article>)}
     </div>}
     {view==="workspace"&&<div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(320px,.78fr)] gap-4">
