@@ -32,7 +32,7 @@ No se simulan resultados: si Ollama no está disponible, la interfaz muestra un 
 5. En macOS, abre Terminal y ejecuta (sustituye el dominio de ejemplo por el dominio real de Vercel):
 
 ```bash
-launchctl setenv OLLAMA_ORIGINS "https://TU-DOMINIO.vercel.app,http://localhost:3000"
+launchctl setenv OLLAMA_ORIGINS "https://transport-ai-virtual-office-transport-ai2.vercel.app,http://localhost:3000"
 ```
 
 6. Cierra Ollama completamente y vuelve a abrirlo para que recoja la variable.
