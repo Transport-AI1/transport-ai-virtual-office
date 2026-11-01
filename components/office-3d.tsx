@@ -67,7 +67,22 @@ function BuildingScene({selected,onSelect}:{selected:number;onSelect:(i:number)=
     <mesh position={[0,6.7,0]}><boxGeometry args={[19.2,.12,13.2]}/><meshStandardMaterial color="#1a2a36"/></mesh>
     {staff.slice(0,4).map((a,i)=><OfficeRoom key={a.id} position={[-7.1+(i%2)*7.1, .25, -4.2+Math.floor(i/2)*7.2]} agentIndex={i} selected={selected===i} onSelect={onSelect} label={a.area}/>)}
     {staff.slice(4).map((a,i)=><OfficeRoom key={a.id} position={[-7.1+(i%2)*7.1, 4.75, -4.2+Math.floor(i/3)*7.2]} agentIndex={i+4} selected={selected===i+4} onSelect={onSelect} label={a.area}/>)}
-    <mesh position={[0,9.2,0]}><boxGeometry args={[19.7,.18,13.7]}/><meshStandardMaterial color="#4d6572"/></mesh>
+    <group position={[6.8,.25,-3.5]}>
+      <mesh position={[0,.58,0]} castShadow><boxGeometry args={[2.8,1.05,.72]}/><meshStandardMaterial color="#31535a"/></mesh>
+      <mesh position={[0,1.15,-.18]}><boxGeometry args={[2.35,.05,.03]}/><meshStandardMaterial color="#70d8d0" emissive="#287d7a" emissiveIntensity={.45}/></mesh>
+      <Html position={[0,2.1,0]} center distanceFactor={12} style={{pointerEvents:"none"}}><div style={{color:"#dce9ef",fontSize:11,letterSpacing:2,whiteSpace:"nowrap",textShadow:"0 2px 6px #000"}}>RECEPCIÓN</div></Html>
+    </group>
+    <group position={[6.8,.25,3.4]}>
+      <mesh position={[0,.48,0]} castShadow><boxGeometry args={[2.5,.12,1.6]}/><meshStandardMaterial color="#657b86"/></mesh>
+      {[-1,1].map(x=>[-.95,.95].map(z=><mesh key={x+"-"+z} position={[x,.24,z]}><cylinderGeometry args={[.07,.07,.45,12]}/><meshStandardMaterial color="#455b68"/></mesh>))}
+      <Html position={[0,1.5,0]} center distanceFactor={12} style={{pointerEvents:"none"}}><div style={{color:"#dce9ef",fontSize:11,letterSpacing:2,whiteSpace:"nowrap",textShadow:"0 2px 6px #000"}}>SALA DE REUNIONES</div></Html>
+    </group>
+    <group position={[0,0,8.3]}>
+      <mesh position={[0,.1,0]} castShadow><boxGeometry args={[6,.2,2.2]}/><meshStandardMaterial color="#465c68"/></mesh>
+      {[-2.5,2.5].map(x=><mesh key={x} position={[x,1.7,-.7]} castShadow><boxGeometry args={[.18,3.4,.18]}/><meshStandardMaterial color="#607783"/></mesh>)}
+      <mesh position={[0,3.35,-.7]}><boxGeometry args={[5.2,.18,.2]}/><meshStandardMaterial color="#70d8d0" emissive="#287d7a" emissiveIntensity={.35}/></mesh>
+      <mesh position={[0,1.65,-.72]}><boxGeometry args={[5.1,3.1,.06]}/><meshStandardMaterial color="#7db7c4" transparent opacity={.12} metalness={.5}/></mesh>
+    </group>
     <OrbitControls makeDefault minDistance={12} maxDistance={38} maxPolarAngle={Math.PI/2.02} target={[0,4,0]}/>
   </>;
 }
