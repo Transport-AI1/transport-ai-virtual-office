@@ -124,43 +124,62 @@ export default function Office3D() {
     setTab("tasks");
   }
   async function sendMessage() {
-    if(!message.trim()||sending) return;
-    const userMessage=message.trim();
-    const history=lines.slice(-8);
-    setChat(current=>({...current,[agent.id]:[...(current[agent.id]||[]),{role:"user",content:userMessage}]}));
-    setMessage(""); setSending(true); setError("");
+    if (!message.trim() || sending) return;
+    const userMessage = message.trim();
+    const history = lines.slice(-8);
+    setChat(current => ({ ...current, [agent.id]: [...(current[agent.id] || []), { role: "user", content: userMessage }] }));
+    setMessage("");
+    setSending(true);
+    setError("");
+
     try {
       let reply = "";
       let modelName = "Ollama local";
       try {
-        const response=await fetch("/api/agents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({agentId:agent.id,message:userMessage,history})});
-        const data=await response.json();
-        if(!response.ok) throw new Error(data.error||"El servidor no puede acceder al modelo local.");
-        reply=data.reply;
-        modelName=data.model||modelName;
-      } catch {
-        const profile=getAgent(agent.id);
-        if(!profile) throw new Error("No se ha encontrado el perfil de este agente.");
-        let localResponse: Response;\n        try { localResponse=await fetch("http://127.0.0.1:11434/api/chat",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({model:"qwen2.5:3b",stream:false,messages:[
-            {role:"system",content:profile.systemPrompt+"\\n\\nResponde en español con pasos concretos y entregables. Nunca afirmes que has ejecutado acciones externas. Pide aprobación humana para cualquier acción fuera de esta conversación."},
-            ...history,
-            {role:"user",content:userMessage}
-          ],options:{temperature:.35}}),
-          signal:AbortSignal.timeout(120000)
+        const response = await fetch("/api/agents", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ agentId: agent.id, message: userMessage, history })
         });
-        if(!localResponse.ok) throw new Error("Ollama local respondió con el estado "+localResponse.status+".");
-        const localData=await localResponse.json();
-        reply=localData.message?.content?.trim()||"El modelo no ha devuelto una respuesta.";
-        modelName=localData.model||modelName;
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "El servidor no puede acceder al modelo local.");
+        reply = data.reply;
+        modelName = data.model || modelName;
+      } catch {
+        const profile = getAgent(agent.id);
+        if (!profile) throw new Error("No se ha encontrado el perfil de este agente.");
+        let localResponse: Response;
+        try {
+          localResponse = await fetch("http://127.0.0.1:11434/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "qwen2.5:3b",
+              stream: false,
+              messages: [
+                { role: "system", content: profile.systemPrompt + "\n\nResponde en español con pasos concretos y entregables. Nunca afirmes que has ejecutado acciones externas. Pide aprobación humana para cualquier acción fuera de esta conversación." },
+                ...history,
+                { role: "user", content: userMessage }
+              ],
+              options: { temperature: 0.35 }
+            }),
+            signal: AbortSignal.timeout(120000)
+          });
+        } catch {
+          throw new Error("No se pudo conectar con Ollama en este Mac. Comprueba que está abierto y que OLLAMA_ORIGINS permite el dominio de esta web.");
+        }
+        if (!localResponse.ok) throw new Error("Ollama local respondió con el estado " + localResponse.status + ".");
+        const localData = await localResponse.json();
+        reply = localData.message?.content?.trim() || "El modelo no ha devuelto una respuesta.";
+        modelName = localData.model || modelName;
       }
-      setChat(current=>({...current,[agent.id]:[...(current[agent.id]||[]),{role:"assistant",content:reply}]}));
+      setChat(current => ({ ...current, [agent.id]: [...(current[agent.id] || []), { role: "assistant", content: reply }] }));
       setModel(modelName);
-    } catch(e) {
-      setError(e instanceof Error?e.message:"Error de conexión");
-    } finally {setSending(false);}
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error de conexión");
+    } finally {
+      setSending(false);
+    }
   }
 
   return <div className="space-y-4">
