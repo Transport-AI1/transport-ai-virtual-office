@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+const Office3D = dynamic(() => import("../components/office-3d"), { ssr: false });
 import {
-  Activity, ArrowDownRight, ArrowUpRight, Bell, BriefcaseBusiness, Building2,
+  Activity, ArrowDownRight, ArrowUpRight, Bell, BriefcaseBusiness, Building2, Box,
   Check, CheckCircle2, ChevronDown, CircleHelp, ClipboardList, Command,
   Compass, FileText, LayoutDashboard, Menu, MessageSquare, Plus, Search,
   Settings2, ShieldCheck, Sparkles, Target, Users, Wallet, X, Zap, BrainCircuit, Send, LoaderCircle,
@@ -38,6 +40,7 @@ const initialTasks: Task[] = [
 const navGroups = [
   { label: "CENTRO DE MANDO", items: [
     { id: "overview", label: "Resumen general", icon: LayoutDashboard },
+    { id: "office3d", label: "Oficina 3D", icon: Box },
     { id: "director", label: "Director de operaciones", icon: Compass },
     { id: "agents", label: "Equipo de agentes", icon: Users },
     { id: "tasks", label: "Tareas y operaciones", icon: ClipboardList },
@@ -153,6 +156,8 @@ export default function Home() {
         </header>
 
         <div className="content">
+          {active === "office3d" && <Office3D />}
+
           {active === "overview" && (
             <>
               <div className="flex flex-wrap items-end justify-between gap-5 mb-8">
