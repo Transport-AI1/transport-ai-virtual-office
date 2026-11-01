@@ -16,7 +16,7 @@ type Agent = {
   description: string; workload: string;
 };
 
-type Task = { id: number; title: string; owner: string; priority: "Alta" | "Media" | "Baja"; done: boolean };
+type Task = { id: number | string; title: string; owner: string; priority: "Alta" | "Media" | "Baja"; done: boolean };
 
 const initialAgents: Agent[] = [
   { id: 1, name: "Director de operaciones", role: "COO · Coordinación", department: "Dirección", initials: "DO", color: "#77d8d0", tint: "rgba(98,213,208,.13)", status: "Disponible", description: "Coordina equipos, prioridades y ejecución.", workload: "Supervisión general" },
@@ -98,7 +98,7 @@ export default function Home() {
     `${agent.name} ${agent.role} ${agent.department}`.toLowerCase().includes(search.toLowerCase())
   ), [agents, search]);
 
-  function toggleTask(id: number) {
+  function toggleTask(id: number | string) {
     setTasks((current) => current.map((task) => task.id === id ? { ...task, done: !task.done } : task));
   }
 
