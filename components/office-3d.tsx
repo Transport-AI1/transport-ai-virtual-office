@@ -4,6 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { Html, OrbitControls } from "@react-three/drei";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Building2, CheckCircle2, ClipboardList, DoorOpen, LoaderCircle, MessageSquare, Send, ShieldCheck, UserRound, X } from "lucide-react";
+import { getAgent } from "@/lib/agents";
 
 const staff = [
   { id:"operations", name:"Director de operaciones", role:"COO · Dirección general", area:"Dirección", color:"#70d8d0", mission:"Coordina los departamentos, convierte objetivos en planes y supervisa el avance de Transport AI.", duties:["Planificar objetivos y prioridades","Distribuir trabajo entre especialistas","Detectar bloqueos y dependencias","Preparar informes de dirección"], tools:["Planificación","Coordinación","Seguimiento"] },
@@ -129,11 +130,34 @@ export default function Office3D() {
     setChat(current=>({...current,[agent.id]:[...(current[agent.id]||[]),{role:"user",content:userMessage}]}));
     setMessage(""); setSending(true); setError("");
     try {
-      const response=await fetch("/api/agents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({agentId:agent.id,message:userMessage,history})});
-      const data=await response.json();
-      if(!response.ok) throw new Error(data.error||"No se pudo contactar con el agente.");
-      setChat(current=>({...current,[agent.id]:[...(current[agent.id]||[]),{role:"assistant",content:data.reply}]}));
-      setModel(data.model||"Ollama");
+      let reply = "";
+      let modelName = "Ollama local";
+      try {
+        const response=await fetch("/api/agents",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({agentId:agent.id,message:userMessage,history})});
+        const data=await response.json();
+        if(!response.ok) throw new Error(data.error||"El servidor no puede acceder al modelo local.");
+        reply=data.reply;
+        modelName=data.model||modelName;
+      } catch {
+        const profile=getAgent(agent.id);
+        if(!profile) throw new Error("No se ha encontrado el perfil de este agente.");
+        const localResponse=await fetch("http://127.0.0.1:11434/api/chat",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({model:"qwen2.5:3b",stream:false,messages:[
+            {role:"system",content:profile.systemPrompt+"\\n\\nResponde en español con pasos concretos y entregables. Nunca afirmes que has ejecutado acciones externas. Pide aprobación humana para cualquier acción fuera de esta conversación."},
+            ...history,
+            {role:"user",content:userMessage}
+          ],options:{temperature:.35}}),
+          signal:AbortSignal.timeout(120000)
+        });
+        if(!localResponse.ok) throw new Error("Ollama local respondió con el estado "+localResponse.status+".");
+        const localData=await localResponse.json();
+        reply=localData.message?.content?.trim()||"El modelo no ha devuelto una respuesta.";
+        modelName=localData.model||modelName;
+      }
+      setChat(current=>({...current,[agent.id]:[...(current[agent.id]||[]),{role:"assistant",content:reply}]}));
+      setModel(modelName);
     } catch(e) {
       setError(e instanceof Error?e.message:"Error de conexión");
     } finally {setSending(false);}
