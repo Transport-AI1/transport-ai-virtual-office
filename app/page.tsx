@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 const Office3D = dynamic(() => import("../components/office-3d"), { ssr: false });
 import {
@@ -72,7 +72,25 @@ export default function Home() {
   const [directorPlan, setDirectorPlan] = useState("");
   const [directorError, setDirectorError] = useState("");
   const [directorModel, setDirectorModel] = useState("");
-  const [directorLoading, setDirectorLoading] = useState(false);
+  const [directorLoading, setDirectorLoading] = useState(false);\n  const [storageReady, setStorageReady] = useState(false);
+
+  useEffect(() => {
+    try {
+      const savedTasks = localStorage.getItem("transport-ai-dashboard-tasks");
+      const savedAgents = localStorage.getItem("transport-ai-dashboard-agents");
+      if (savedTasks) setTasks(JSON.parse(savedTasks));
+      if (savedAgents) setAgents(JSON.parse(savedAgents));
+    } catch {
+      setNotice("No se pudieron recuperar algunos datos guardados en este navegador.");
+    }
+    setStorageReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!storageReady) return;
+    localStorage.setItem("transport-ai-dashboard-tasks", JSON.stringify(tasks));
+    localStorage.setItem("transport-ai-dashboard-agents", JSON.stringify(agents));
+  }, [tasks, agents, storageReady]);
 
   const completed = tasks.filter((task) => task.done).length;
   const filteredAgents = useMemo(() => agents.filter((agent) =>
