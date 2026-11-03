@@ -82,6 +82,7 @@ export default function Home() {
   const [directorError, setDirectorError] = useState("");
   const [directorModel, setDirectorModel] = useState("");
   const [directorLoading, setDirectorLoading] = useState(false);
+  const [queueLoading, setQueueLoading] = useState(false);
   const [modelStatus, setModelStatus] = useState("Sin comprobar");
   const [checkingModel, setCheckingModel] = useState(false);
   const [storageReady, setStorageReady] = useState(false);
@@ -173,6 +174,37 @@ export default function Home() {
     setTaskTitle("");
     setShowTaskForm(false);
     setNotice("Tarea añadida al panel. Pendiente de ejecución y aprobación.");
+  }
+
+  async function createAutonomousQueue() {
+    if (!directorBrief.trim() || queueLoading) return;
+    setQueueLoading(true);
+    setDirectorError("");
+    try {
+      const response = await fetch("/api/plan-tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brief: directorBrief })
+      });
+      const data = await response.json();
+      if (!response.ok || !Array.isArray(data.tasks)) throw new Error(data.error || "El Director no ha podido crear la cola de trabajo.");
+      const newTasks: Task[] = data.tasks.map((task: { title: string; owner: string; priority: "Alta" | "Media" | "Baja" }, index: number) => ({
+        id: "auto-" + Date.now() + "-" + index,
+        title: task.title,
+        owner: task.owner,
+        priority: task.priority,
+        done: false,
+        status: "Pendiente"
+      }));
+      setTasks((current) => [...newTasks, ...current]);
+      setAutopilotEnabled(true);
+      setActive("tasks");
+      setNotice("El Director ha distribuido " + newTasks.length + " tareas. Los especialistas empezarán a ejecutarlas.");
+    } catch (error) {
+      setDirectorError(error instanceof Error ? error.message : "No se ha podido crear la cola de trabajo.");
+    } finally {
+      setQueueLoading(false);
+    }
   }
 
   function exportBackup() {
@@ -393,7 +425,7 @@ export default function Home() {
                     } catch (error) {
                       setDirectorError(error instanceof Error ? error.message : "Ha ocurrido un error.");
                     } finally { setDirectorLoading(false); }
-                  }}>{directorLoading ? <><LoaderCircle size={15} className="animate-spin" />Preparando plan...</> : <><Send size={14} />Preparar plan de trabajo</>}</button></div>
+                  }}>{directorLoading ? <><LoaderCircle size={15} className="animate-spin" />Preparando plan...</> : <><Send size={14} />Preparar plan de trabajo</>}</button><button className="ghost-button" disabled={queueLoading || directorLoading || !directorBrief.trim()} onClick={createAutonomousQueue}>{queueLoading ? <><LoaderCircle size={14} className="animate-spin" />Repartiendo tareas...</> : <><Zap size={14} />Crear tareas y activar agentes</>}</button></div>
                   {directorError && <div className="mt-4 rounded-lg p-3 text-xs leading-relaxed text-amber-200" style={{ background: "rgba(218,171,85,.08)", border: "1px solid rgba(218,171,85,.2)" }}>{directorError}<div className="text-[10px] text-amber-100/60 mt-2">Comprueba que el motor local esté iniciado y que su API compatible con OpenAI esté activa. Consulta docs/AGENT_SYSTEM.md.</div></div>}
                   {directorPlan && <div className="mt-5 border-t pt-5" style={{ borderColor: "var(--line)" }}><div className="flex flex-wrap items-center justify-between gap-2 mb-3"><div className="text-sm font-semibold flex items-center gap-2"><CheckCircle2 size={15} className="text-teal-300" />Plan preparado</div><span className="text-[10px] text-slate-500">{directorModel}</span></div><pre className="whitespace-pre-wrap font-sans text-xs leading-7 text-slate-300">{directorPlan}</pre><div className="mt-4 text-[10px] text-slate-500">Propuesta generada por IA local. Revisa y aprueba las tareas antes de ejecutarlas.</div>{directorTruncated && <div className="mt-3 rounded-lg p-3 text-xs text-amber-200" style={{ background: "rgba(218,171,85,.08)", border: "1px solid rgba(218,171,85,.2)" }}>La respuesta ha alcanzado el límite de generación y puede estar incompleta. Puedes pedir al Director que continúe o que resuma el plan.</div>}</div>}
                 </section>
