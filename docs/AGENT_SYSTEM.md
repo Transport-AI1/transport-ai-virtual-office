@@ -80,15 +80,15 @@ El flujo de GitHub Actions `.github/workflows/validate.yml` instala dependencias
 
 ## Qué puede hacer cada trabajador
 
-Los agentes pueden analizar instrucciones, redactar, planificar y preparar entregables dentro de su conversación. La bandeja de tareas permite asignar trabajo y marcarlo como completado; por ahora el estado de finalización lo actualiza una persona.
+Los agentes pueden analizar instrucciones, redactar, planificar y preparar entregables dentro de su conversación. La bandeja de tareas permite asignar trabajo y activar el modo autónomo. Con el modo activo, el navegador procesa secuencialmente las tareas pendientes mediante `POST /api/execute-task`, usando el especialista asignado y el motor local. El resultado queda guardado como entregable en estado **Revisión**; una persona debe aprobarlo para marcar la tarea como completada. Los errores se pueden reintentar.
 
-No tienen acceso automático a correo, WhatsApp, bancos, clientes, GitHub ni otros servicios. No envían mensajes, realizan pagos, publican ni despliegan. Para eso hacen falta integraciones reales, permisos y aprobación humana.
+La ejecución autónoma actual solo realiza trabajo intelectual dentro del modelo local: redactar, analizar, planificar y preparar entregables. Requiere que la página de la oficina permanezca abierta y que GPT4All esté activo. No es un servicio 24/7 y se pausa si el navegador o el Mac se apagan.\n\nNo tienen acceso automático a correo, WhatsApp, bancos, clientes, GitHub ni otros servicios. No envían mensajes, realizan pagos, publican ni despliegan. Para eso hacen falta integraciones reales, permisos y aprobación humana.
 
 ## Siguientes fases
 
 1. Base de datos compartida y autenticación.
 2. Bandeja central de tareas conectada al Director de Operaciones.
-3. Herramientas seguras y permisos granulares para cada agente.
+3. Ejecutor persistente en segundo plano, con cola compartida y reanudación tras reinicios.\n4. Herramientas seguras y permisos granulares para cada agente.
 4. Integraciones aprobadas (correo, CRM, WhatsApp, GitHub y calendario).
 5. Registro de actividad y auditoría de acciones.
 6. Edificio 3D con más detalle visual y navegación por plantas.
