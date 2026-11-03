@@ -135,7 +135,7 @@ function BuildingScene({selected,onSelect}:{selected:number;onSelect:(i:number)=
   </>;
 }
 
-type Task = { id:string | number; title:string; owner:string; priority:"Alta"|"Media"|"Baja"; done:boolean; createdAt?:string };
+type Task = { id:string | number; title:string; owner:string; priority:"Alta"|"Media"|"Baja"; done:boolean; status?:"Pendiente"|"Trabajando"|"Revisión"|"Error"|"Completada"; result?:string; createdAt?:string };
 type ChatLine = { role:"user"|"assistant"; content:string };
 
 export default function Office3D() {
