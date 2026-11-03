@@ -40,12 +40,12 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model,
         stream: false,
-        max_tokens: 1800,
+        max_tokens: 650,
         messages: [
           {
             role: "system",
             content: director.systemPrompt + "\n\n" + AGENT_SHARED_RULES +
-              "\n\nINSTRUCCIÓN ESPECIAL PARA ESTE ENCARGO: entrega un plan completo y legible. Incluye entre 5 y 8 tareas reales si el alcance lo permite. Para cada una indica responsable elegido entre los ocho especialistas, prioridad, acciones concretas, entregable verificable, criterio de finalización y dependencias. No te limites a un título o una introducción. Si el modelo no puede completar todos los detalles, prioriza las tareas más importantes y termina con una nota de alcance pendiente."
+              "\n\nINSTRUCCIÓN ESPECIAL PARA ESTE ENCARGO: entrega un plan completo y legible. Incluye entre 3 y 5 tareas prioritarias. Para cada una indica responsable, prioridad, acción principal y entregable verificable. Usa frases breves y evita introducciones largas para que el plan pueda generarse en un equipo local."
           },
           { role: "user", content: brief }
         ],
