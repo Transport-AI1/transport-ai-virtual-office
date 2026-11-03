@@ -9,6 +9,8 @@ Oficina virtual privada para organizar el trabajo de Transport AI con nueve perf
 - Conversación individual con cada agente especializado.
 - Director de Operaciones para preparar planes de trabajo.
 - Gestión manual de tareas, responsables y prioridades.
+- CRM local para registrar empresas, contactos, estado comercial y próximos seguimientos.
+- Copia de seguridad descargable de tareas, perfiles, contactos y conversaciones.
 - Historial de conversaciones y tareas guardado en el navegador mediante `localStorage`.
 - API de servidor para conectar un motor local compatible con OpenAI.
 - Comprobación de conectividad y modelos disponibles en el servidor local.
