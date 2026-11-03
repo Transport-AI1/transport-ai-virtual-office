@@ -38,7 +38,7 @@ El MacBook Pro de pruebas tiene un Intel Core i7-1068NG7 y 32 GB de RAM. llama.c
 La integración prevista es:
 
 1. Instalar una compilación de llama.cpp compatible con macOS Intel desde sus fuentes oficiales.
-2. Descargar un modelo GGUF instruct. Como candidato de calidad se puede comparar Qwen2.5 7B Instruct en cuantización Q4_K_M (archivo aproximado de 4,68 GB).
+2. Empezar con Qwen2.5 3B Instruct Q5_K_M (aprox. 2,2 GB) para priorizar velocidad en el Intel de 4 núcleos. Si el rendimiento es aceptable y se necesita más capacidad, comparar después Qwen2.5 7B Instruct Q4_K_M (aprox. 4,68 GB), sabiendo que probablemente será más lento.
 3. Iniciar `llama-server` enlazado solo a `127.0.0.1`, puerto `4891`, con el modelo descargado y un alias estable.
 4. Configurar `LOCAL_LLM_BASE_URL=http://127.0.0.1:4891/v1` y `LOCAL_LLM_MODEL` con el alias configurado.
 5. Comprobar primero `/v1/models`, después una petición corta a `/v1/chat/completions`, y por último los agentes de la oficina.
@@ -51,7 +51,7 @@ llama-server -m "/ruta/al/modelo.gguf" --host 127.0.0.1 --port 4891 --alias tran
 
 En ese caso, configurar `LOCAL_LLM_MODEL=transport-ai`.
 
-**Importante:** 32 GB de RAM permiten cargar modelos cuantizados de este tamaño, pero no garantizan velocidad. El procesador tiene 4 núcleos y la generación será principalmente CPU; hay que medir tokens por segundo antes de decidir si un 7B mejora la experiencia frente al modelo actual. No se ha instalado ni probado todavía llama.cpp en este Mac.
+**Importante:** 32 GB de RAM permiten cargar modelos cuantizados de 3B y 7B, pero no garantizan velocidad. El procesador tiene 4 núcleos y la generación será principalmente CPU. Conviene comparar primero el 3B Q5_K_M con el modelo actual; un 7B puede razonar mejor, pero también puede tardar bastante más. No se ha instalado ni probado todavía llama.cpp en este Mac.
 
 ## Activar GPT4All (motor actual)
 
