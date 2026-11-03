@@ -91,7 +91,7 @@ export default function Home() {
       const savedTasks = localStorage.getItem("transport-ai-dashboard-tasks");
       const savedAgents = localStorage.getItem("transport-ai-dashboard-agents");
       const savedClients = localStorage.getItem("transport-ai-dashboard-clients");\n      setAutopilotEnabled(localStorage.getItem("transport-ai-autopilot") === "true");
-      if (savedTasks) setTasks(JSON.parse(savedTasks));
+      if (savedTasks) {\n        const restoredTasks = JSON.parse(savedTasks) as Task[];\n        setTasks(restoredTasks.map((task) => task.status === "Trabajando" ? { ...task, status: "Pendiente" } : task));\n      }
       if (savedAgents) setAgents(JSON.parse(savedAgents));
       if (savedClients) setClients(JSON.parse(savedClients));
     } catch {
