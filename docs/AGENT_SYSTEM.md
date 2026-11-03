@@ -16,7 +16,7 @@ La persistencia actual es local al navegador: no sincroniza automáticamente ent
 
 Los nueve perfiles e instrucciones están versionados en `lib/agents.ts`. El endpoint `POST /api/agents` permite conversar con cada especialista y el Director de Operaciones utiliza `POST /api/director`.
 
-Ambos endpoints utilizan la API compatible con OpenAI `/chat/completions`. Por eso pueden conectarse a distintos motores locales sin modificar el código:
+Los endpoints `/api/agents` y `/api/director` utilizan la API compatible con OpenAI `/chat/completions`. El endpoint `/api/health` comprueba si el servidor responde y qué modelos anuncia. Por eso pueden conectarse a distintos motores locales sin modificar el código:
 
 - GPT4All: `http://127.0.0.1:4891/v1`
 - llama.cpp server: se puede iniciar en `http://127.0.0.1:4891/v1` para reutilizar la misma configuración.
@@ -67,6 +67,16 @@ En ese caso, configurar `LOCAL_LLM_MODEL=transport-ai`.
 Una función alojada en Vercel no puede acceder a `127.0.0.1` de tu Mac. La conexión local está pensada para desarrollo: Next.js y el motor de IA deben ejecutarse en el mismo ordenador. La web publicada no podrá utilizar este endpoint local directamente.
 
 No expongas el servidor local a Internet ni lo enlaces a `0.0.0.0` sin autenticación y controles de seguridad.
+
+## Diagnóstico desde la interfaz
+
+En la sección **Director de operaciones**, el botón **Comprobar conexión** consulta `/api/health` y muestra si el servidor local responde y si el modelo configurado aparece en `/v1/models`. Esta comprobación no genera texto ni consume tokens de inferencia.
+
+La sección **Configuración** permite descargar una copia JSON de las tareas, los perfiles y las conversaciones guardadas en el navegador. El archivo puede contener información interna: guárdalo en un lugar privado.
+
+## Validación automática
+
+El flujo de GitHub Actions `.github/workflows/validate.yml` instala dependencias, comprueba TypeScript y ejecuta la compilación de Next.js en cada push a `main` y en las pull requests.
 
 ## Qué puede hacer cada trabajador
 
