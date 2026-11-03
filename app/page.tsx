@@ -7,7 +7,7 @@ import {
   Activity, ArrowDownRight, ArrowUpRight, Bell, BriefcaseBusiness, Building2, Box,
   Check, CheckCircle2, ChevronDown, CircleHelp, ClipboardList, Command,
   Compass, FileText, LayoutDashboard, Menu, MessageSquare, Plus, Search,
-  Settings2, ShieldCheck, Sparkles, Target, Users, Wallet, X, Zap, BrainCircuit, Send, LoaderCircle,
+  Settings2, ShieldCheck, Sparkles, Target, Users, Wallet, X, Zap, BrainCircuit, Send, LoaderCircle, Download,
 } from "lucide-react";
 
 type Agent = {
@@ -113,6 +113,33 @@ export default function Home() {
     setNotice("Tarea añadida al panel. Pendiente de ejecución y aprobación.");
   }
 
+  function exportBackup() {
+    try {
+      const backup = {
+        product: "Transport AI Virtual Office",
+        schemaVersion: 1,
+        exportedAt: new Date().toISOString(),
+        data: {
+          tasks: localStorage.getItem("transport-ai-dashboard-tasks"),
+          agents: localStorage.getItem("transport-ai-dashboard-agents"),
+          conversations: localStorage.getItem("transport-ai-office-chat")
+        }
+      };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "transport-ai-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setNotice("Copia de seguridad descargada correctamente.");
+    } catch {
+      setNotice("No se ha podido crear la copia de seguridad de este navegador.");
+    }
+  }
+
   function toggleAgent(id: number) {
     setAgents((current) => current.map((agent) => agent.id === id
       ? { ...agent, status: agent.status === "En espera" ? "Disponible" : "En espera" }
@@ -154,7 +181,7 @@ export default function Home() {
             <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-200"><ShieldCheck size={14} style={{ color: "#72d9d2" }} /> Entorno privado</div>
             <p className="text-[10px] leading-relaxed text-slate-500 mt-2">Espacio interno de trabajo. Las acciones externas requerirán tu aprobación.</p>
           </div>
-          <button className="nav-item"><Settings2 size={16} />Configuración</button>
+          <button className={`nav-item ${active === "settings" ? "active" : ""}`} onClick={() => { setActive("settings"); setMobileOpen(false); }}><Settings2 size={16} />Configuración</button>
           <div className="mt-4 border-t pt-4 flex items-center gap-3" style={{ borderColor: "var(--line)" }}>
             <div className="avatar" style={{ width: 34, height: 34, borderRadius: 11, background: "rgba(98,213,208,.13)", color: "#8ce3dc", fontSize: 11 }}>TA</div>
             <div className="min-w-0"><div className="text-xs font-semibold text-slate-200">Dirección</div><div className="text-[10px] text-slate-500">Administrador principal</div></div>
@@ -179,6 +206,36 @@ export default function Home() {
 
         <div className="content">
           {active === "office3d" && <Office3D />}
+          {active === "settings" && (
+            <>
+              <div className="mb-7"><div className="eyebrow">Preferencias y protección</div><h1 className="page-title">Configuración</h1><p className="subtle">Administra tus datos locales y consulta cómo está conectada la oficina virtual.</p></div>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                <section className="panel p-5">
+                  <div className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck size={16} className="text-teal-300" />Copia de seguridad</div>
+                  <p className="text-xs leading-relaxed text-slate-400 mt-3">Las tareas, los perfiles y las conversaciones se guardan en el almacenamiento de este navegador. Descarga una copia para conservarlos si cambias de equipo o limpias los datos del navegador.</p>
+                  <button className="action-button mt-5" onClick={exportBackup}><Download size={15} />Descargar copia de seguridad</button>
+                  <p className="text-[10px] text-slate-600 mt-3">El archivo contiene los datos guardados en este navegador. Guárdalo en un lugar privado.</p>
+                </section>
+                <section className="panel p-5">
+                  <div className="flex items-center gap-2 text-sm font-semibold"><BrainCircuit size={16} className="text-teal-300" />Motor de inteligencia artificial</div>
+                  <p className="text-xs leading-relaxed text-slate-400 mt-3">La oficina utiliza un servidor local compatible con la API de OpenAI. Puedes mantener GPT4All o sustituirlo por llama.cpp sin cambiar la lógica de los agentes.</p>
+                  <div className="mt-4 rounded-lg p-3 text-[11px] text-slate-300" style={{ background: "rgba(255,255,255,.025)", border: "1px solid var(--line)" }}>
+                    <div className="text-slate-500 mb-1">Dirección predeterminada</div>
+                    <code>http://127.0.0.1:4891/v1</code>
+                    <div className="text-slate-500 mt-3 mb-1">Variables opcionales</div>
+                    <code>LOCAL_LLM_BASE_URL</code><br /><code>LOCAL_LLM_MODEL</code>
+                  </div>
+                  <p className="text-[10px] text-slate-600 mt-3">La configuración avanzada está documentada en docs/AGENT_SYSTEM.md. No compartas el puerto local en Internet.</p>
+                  <button className="ghost-button mt-4" onClick={() => setActive("director")}><Activity size={14} />Ir al Director y comprobar conexión</button>
+                </section>
+                <section className="panel p-5">
+                  <div className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck size={16} className="text-teal-300" />Privacidad y permisos</div>
+                  <p className="text-xs leading-relaxed text-slate-400 mt-3">Los agentes preparan análisis y entregables. No tienen permisos automáticos para enviar mensajes, realizar pagos, publicar contenido o modificar sistemas externos. Las acciones externas requieren integraciones y aprobación humana.</p>
+                </section>
+              </div>
+            </>
+          )}
+
 
           {active === "overview" && (
             <>
