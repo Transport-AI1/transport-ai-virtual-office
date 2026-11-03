@@ -12,32 +12,61 @@ Cada despacho ofrece:
 
 La persistencia actual es local al navegador: no sincroniza automáticamente entre dispositivos ni usuarios y se pierde si se borra el almacenamiento del sitio.
 
-## Agentes y ejecución
+## Agentes y motor de IA local
 
-Los nueve perfiles e instrucciones están versionados en `lib/agents.ts`. El endpoint `POST /api/agents` permite conversar con cada especialista usando la API local compatible con OpenAI de GPT4All. El Director de Operaciones utiliza `POST /api/director`.
+Los nueve perfiles e instrucciones están versionados en `lib/agents.ts`. El endpoint `POST /api/agents` permite conversar con cada especialista y el Director de Operaciones utiliza `POST /api/director`.
 
-- Dirección predeterminada: `http://127.0.0.1:4891/v1`
-- Endpoint: `/chat/completions`
-- Modelo predeterminado: `Llama 3.2 3B Instruct`
-- Variable opcional: `GPT4ALL_BASE_URL`
-- Variable opcional: `GPT4ALL_MODEL`
+Ambos endpoints utilizan la API compatible con OpenAI `/chat/completions`. Por eso pueden conectarse a distintos motores locales sin modificar el código:
 
-No se simulan resultados: si GPT4All no está disponible o el modelo no está cargado, la interfaz muestra un error.
+- GPT4All: `http://127.0.0.1:4891/v1`
+- llama.cpp server: se puede iniciar en `http://127.0.0.1:4891/v1` para reutilizar la misma configuración.
+- Modelo predeterminado mientras no se configure otro: `Llama 3.2 3B Instruct`.
 
-## Activar IA sin pagar una API
+Variables de entorno (en `.env.local`):
+
+```env
+LOCAL_LLM_BASE_URL=http://127.0.0.1:4891/v1
+LOCAL_LLM_MODEL=Llama 3.2 3B Instruct
+```
+
+Las variables antiguas `GPT4ALL_BASE_URL` y `GPT4ALL_MODEL` siguen siendo compatibles, pero las variables `LOCAL_LLM_*` tienen prioridad. El nombre del modelo debe coincidir con el que espera el servidor local.
+
+## Alternativa estudiada: llama.cpp en Mac Intel
+
+El MacBook Pro de pruebas tiene un Intel Core i7-1068NG7 y 32 GB de RAM. llama.cpp declara soporte para instrucciones AVX/AVX2 en procesadores x86 y ofrece un servidor HTTP compatible con la API de OpenAI, por lo que es una alternativa técnicamente adecuada para probar en este equipo.
+
+La integración prevista es:
+
+1. Instalar una compilación de llama.cpp compatible con macOS Intel desde sus fuentes oficiales.
+2. Descargar un modelo GGUF instruct. Como candidato de calidad se puede comparar Qwen2.5 7B Instruct en cuantización Q4_K_M (archivo aproximado de 4,68 GB).
+3. Iniciar `llama-server` enlazado solo a `127.0.0.1`, puerto `4891`, con el modelo descargado y un alias estable.
+4. Configurar `LOCAL_LLM_BASE_URL=http://127.0.0.1:4891/v1` y `LOCAL_LLM_MODEL` con el alias configurado.
+5. Comprobar primero `/v1/models`, después una petición corta a `/v1/chat/completions`, y por último los agentes de la oficina.
+
+Ejemplo de arranque una vez instalado llama.cpp y descargado el GGUF (sustituir la ruta por la ubicación real del archivo):
+
+```bash
+llama-server -m "/ruta/al/modelo.gguf" --host 127.0.0.1 --port 4891 --alias transport-ai --threads 4
+```
+
+En ese caso, configurar `LOCAL_LLM_MODEL=transport-ai`.
+
+**Importante:** 32 GB de RAM permiten cargar modelos cuantizados de este tamaño, pero no garantizan velocidad. El procesador tiene 4 núcleos y la generación será principalmente CPU; hay que medir tokens por segundo antes de decidir si un 7B mejora la experiencia frente al modelo actual. No se ha instalado ni probado todavía llama.cpp en este Mac.
+
+## Activar GPT4All (motor actual)
 
 1. Abre GPT4All en tu Mac.
-2. Descarga o selecciona el modelo que quieras utilizar (la configuración inicial contempla `Llama 3.2 3B Instruct`).
-3. Activa **Enable Local API Server** en los ajustes de GPT4All. La dirección habitual es `http://127.0.0.1:4891/v1`.
+2. Selecciona el modelo que quieras utilizar.
+3. Activa **Enable Local API Server**. La dirección habitual es `http://127.0.0.1:4891/v1`.
 4. Comprueba que el servidor está activo y que el modelo está cargado.
 5. En tu Mac, abre Terminal dentro de la carpeta del proyecto y ejecuta `npm run dev`.
-6. Abre `http://localhost:3000`. Las rutas de Next.js se ejecutan en el mismo Mac y pueden acceder a GPT4All en `127.0.0.1`.
+6. Abre `http://localhost:3000`. Las rutas de Next.js se ejecutan en el mismo Mac y pueden acceder al motor local.
 
-Si el nombre del modelo que muestra GPT4All es diferente, puedes definir `GPT4ALL_MODEL` en el entorno de Next.js con el nombre exacto devuelto por `/v1/models`.
+## Importante sobre Vercel y seguridad
 
-## Importante sobre Vercel
+Una función alojada en Vercel no puede acceder a `127.0.0.1` de tu Mac. La conexión local está pensada para desarrollo: Next.js y el motor de IA deben ejecutarse en el mismo ordenador. La web publicada no podrá utilizar este endpoint local directamente.
 
-Una función alojada en Vercel no puede acceder a `127.0.0.1` de tu Mac. Por tanto, la conexión del servidor que acabamos de configurar está pensada para desarrollo local: Next.js y GPT4All deben ejecutarse en el mismo ordenador. La web publicada no podrá utilizar este endpoint local directamente. No expongas el puerto 4891 a Internet ni publiques una API local sin autenticación y controles de seguridad.
+No expongas el servidor local a Internet ni lo enlaces a `0.0.0.0` sin autenticación y controles de seguridad.
 
 ## Qué puede hacer cada trabajador
 
