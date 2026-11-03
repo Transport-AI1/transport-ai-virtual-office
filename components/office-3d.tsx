@@ -203,6 +203,7 @@ export default function Office3D() {
       const existing = saved ? JSON.parse(saved) as Task[] : [];
       const combined = [...newTasks, ...existing];
       localStorage.setItem("transport-ai-dashboard-tasks", JSON.stringify(combined));
+      localStorage.setItem("transport-ai-autopilot", "true");
       setTasks(combined);
       window.dispatchEvent(new Event("transport-ai-tasks-updated"));
       setMessage("");
