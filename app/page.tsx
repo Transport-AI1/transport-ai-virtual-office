@@ -17,6 +17,8 @@ type Agent = {
 };
 
 type Task = { id: number | string; title: string; owner: string; priority: "Alta" | "Media" | "Baja"; done: boolean };
+type ClientStatus = "Prospecto" | "Contactado" | "Interesado" | "Propuesta enviada" | "Cliente" | "Descartado";
+type Client = { id: string; company: string; contact: string; status: ClientStatus; nextAction: string; createdAt: string };
 
 const initialAgents: Agent[] = [
   { id: 1, name: "Director de operaciones", role: "COO · Coordinación", department: "Dirección", initials: "DO", color: "#77d8d0", tint: "rgba(98,213,208,.13)", status: "Disponible", description: "Coordina equipos, prioridades y ejecución.", workload: "Supervisión general" },
@@ -62,6 +64,12 @@ export default function Home() {
   const [active, setActive] = useState("office3d");
   const [agents, setAgents] = useState(initialAgents);
   const [tasks, setTasks] = useState(initialTasks);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [showClientForm, setShowClientForm] = useState(false);
+  const [clientCompany, setClientCompany] = useState("");
+  const [clientContact, setClientContact] = useState("");
+  const [clientStatus, setClientStatus] = useState<ClientStatus>("Prospecto");
+  const [clientNextAction, setClientNextAction] = useState("");
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [taskTitle, setTaskTitle] = useState("");
   const [taskOwner, setTaskOwner] = useState(initialAgents[0].name);
@@ -82,8 +90,10 @@ export default function Home() {
     try {
       const savedTasks = localStorage.getItem("transport-ai-dashboard-tasks");
       const savedAgents = localStorage.getItem("transport-ai-dashboard-agents");
+      const savedClients = localStorage.getItem("transport-ai-dashboard-clients");
       if (savedTasks) setTasks(JSON.parse(savedTasks));
       if (savedAgents) setAgents(JSON.parse(savedAgents));
+      if (savedClients) setClients(JSON.parse(savedClients));
     } catch {
       setNotice("No se pudieron recuperar algunos datos guardados en este navegador.");
     }
@@ -94,7 +104,8 @@ export default function Home() {
     if (!storageReady) return;
     localStorage.setItem("transport-ai-dashboard-tasks", JSON.stringify(tasks));
     localStorage.setItem("transport-ai-dashboard-agents", JSON.stringify(agents));
-  }, [tasks, agents, storageReady]);
+    localStorage.setItem("transport-ai-dashboard-clients", JSON.stringify(clients));
+  }, [tasks, agents, clients, storageReady]);
 
   const completed = tasks.filter((task) => task.done).length;
   const filteredAgents = useMemo(() => agents.filter((agent) =>
@@ -122,6 +133,7 @@ export default function Home() {
         data: {
           tasks: localStorage.getItem("transport-ai-dashboard-tasks"),
           agents: localStorage.getItem("transport-ai-dashboard-agents"),
+          clients: localStorage.getItem("transport-ai-dashboard-clients"),
           conversations: localStorage.getItem("transport-ai-office-chat")
         }
       };
@@ -138,6 +150,24 @@ export default function Home() {
     } catch {
       setNotice("No se ha podido crear la copia de seguridad de este navegador.");
     }
+  }
+
+  function addClient() {
+    if (!clientCompany.trim()) return;
+    setClients((current) => [{
+      id: crypto.randomUUID(),
+      company: clientCompany.trim(),
+      contact: clientContact.trim(),
+      status: clientStatus,
+      nextAction: clientNextAction.trim(),
+      createdAt: new Date().toISOString()
+    }, ...current]);
+    setClientCompany("");
+    setClientContact("");
+    setClientStatus("Prospecto");
+    setClientNextAction("");
+    setShowClientForm(false);
+    setNotice("Contacto añadido al CRM local.");
   }
 
   function toggleAgent(id: number) {
@@ -349,7 +379,45 @@ export default function Home() {
             </>
           )}
 
-          {["projects", "clients", "documents", "finance"].includes(active) && (
+          {active === "clients" && (
+            <>
+              <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
+                <div><div className="eyebrow">Relaciones comerciales · CRM local</div><h1 className="page-title">Clientes y oportunidades</h1><p className="subtle">Organiza prospectos, contactos y próximos seguimientos sin depender de un CRM de pago.</p></div>
+                <button className="action-button" onClick={() => setShowClientForm(value => !value)}><Plus size={15} />Añadir contacto</button>
+              </div>
+              <div className="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
+                <div className="panel stat-card"><div className="stat-label">Contactos</div><div className="stat-value">{clients.length}</div></div>
+                <div className="panel stat-card"><div className="stat-label">Prospectos</div><div className="stat-value">{clients.filter(client => client.status === "Prospecto").length}</div></div>
+                <div className="panel stat-card"><div className="stat-label">Propuestas enviadas</div><div className="stat-value">{clients.filter(client => client.status === "Propuesta enviada").length}</div></div>
+                <div className="panel stat-card"><div className="stat-label">Clientes</div><div className="stat-value">{clients.filter(client => client.status === "Cliente").length}</div></div>
+              </div>
+              {showClientForm && <section className="panel p-5 mb-5">
+                <div className="text-sm font-semibold mb-4">Nuevo contacto comercial</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input className="input-dark" placeholder="Empresa *" value={clientCompany} onChange={event => setClientCompany(event.target.value)} />
+                  <input className="input-dark" placeholder="Persona de contacto (opcional)" value={clientContact} onChange={event => setClientContact(event.target.value)} />
+                  <select className="input-dark" value={clientStatus} onChange={event => setClientStatus(event.target.value as ClientStatus)}>
+                    {(["Prospecto", "Contactado", "Interesado", "Propuesta enviada", "Cliente", "Descartado"] as ClientStatus[]).map(status => <option key={status} value={status}>{status}</option>)}
+                  </select>
+                  <input className="input-dark" placeholder="Próxima acción (ej. llamar el jueves)" value={clientNextAction} onChange={event => setClientNextAction(event.target.value)} />
+                </div>
+                <div className="flex justify-end gap-2 mt-4"><button className="ghost-button" onClick={() => setShowClientForm(false)}>Cancelar</button><button className="action-button" disabled={!clientCompany.trim()} onClick={addClient}>Guardar contacto</button></div>
+              </section>}
+              <section className="panel p-5">
+                <div className="flex items-center justify-between mb-3"><div className="text-sm font-semibold">Pipeline comercial</div><span className="text-[10px] text-slate-500">Guardado en este navegador</span></div>
+                {clients.length === 0 ? <div className="py-10 text-center"><Users size={25} className="mx-auto text-slate-600 mb-3" /><div className="text-sm text-slate-300">Todavía no hay contactos</div><p className="text-xs text-slate-500 mt-2">Añade empresas con las que estés hablando y registra el siguiente paso.</p></div> :
+                  clients.map(client => <article key={client.id} className="task-row flex-wrap gap-3">
+                    <div className="min-w-0 flex-1"><div className="text-sm font-semibold text-slate-200">{client.company}</div>{client.contact && <div className="text-[10px] text-slate-500 mt-1">{client.contact}</div>}{client.nextAction && <div className="text-xs text-slate-400 mt-2">Siguiente paso: {client.nextAction}</div>}</div>
+                    <select className="input-dark !w-auto !min-w-[150px] !py-2 text-[11px]" aria-label={"Estado de " + client.company} value={client.status} onChange={event => setClients(current => current.map(item => item.id === client.id ? { ...item, status: event.target.value as ClientStatus } : item))}>
+                      {(["Prospecto", "Contactado", "Interesado", "Propuesta enviada", "Cliente", "Descartado"] as ClientStatus[]).map(status => <option key={status} value={status}>{status}</option>)}
+                    </select>
+                  </article>)
+                }
+              </section>
+            </>
+          )}
+
+          {["projects", "documents", "finance"].includes(active) && (
             <div className="max-w-2xl"><div className="eyebrow">Módulo de gestión</div><h1 className="page-title">{pageTitle}</h1><p className="subtle mb-7">Este espacio forma parte de la estructura de la oficina virtual.</p><div className="panel p-7"><div className="brand-mark mb-5"><Building2 size={19} /></div><div className="text-base font-semibold">Módulo preparado para su desarrollo</div><p className="subtle mt-2 max-w-lg">La estructura está creada. En la siguiente fase conectaremos este apartado con datos reales y herramientas de trabajo, manteniendo el control y la aprobación final en tus manos.</p><div className="mt-5 flex items-center gap-2 text-[11px] text-slate-500"><ShieldCheck size={14} className="text-teal-300" />Sin conexiones externas ni costes activados</div></div></div>
           )}
 
