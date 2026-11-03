@@ -25,12 +25,12 @@ export async function POST(request: NextRequest) {
   if (!message) return NextResponse.json({ error: "Escribe una instrucción para el agente." }, { status: 400 });
   if (message.length > 6000) return NextResponse.json({ error: "El mensaje supera los 6.000 caracteres." }, { status: 400 });
 
-  const history = Array.isArray(body.history) ? body.history.slice(-8) : [];
+  const history = Array.isArray(body.history) ? body.history.slice(-4) : [];
   const safeHistory = history.flatMap((item) => {
     if (!item || typeof item !== "object") return [];
     const row = item as { role?: unknown; content?: unknown };
     if ((row.role !== "user" && row.role !== "assistant") || typeof row.content !== "string") return [];
-    return [{ role: row.role, content: row.content.slice(0, 4000) }];
+    return [{ role: row.role, content: row.content.slice(0, 1500) }];
   });
 
   const baseUrl = (process.env.LOCAL_LLM_BASE_URL || process.env.GPT4ALL_BASE_URL || "http://127.0.0.1:4891/v1").replace(/\/$/, "");
