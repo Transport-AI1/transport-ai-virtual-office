@@ -33,6 +33,17 @@ LOCAL_LLM_BASE_URL=http://127.0.0.1:4891/v1
 LOCAL_LLM_MODEL=Llama 3.2 3B Instruct
 ```
 
+Para conectar una instancia de GPT4All del Mac desde una aplicación alojada en Vercel, configura un túnel HTTPS con acceso protegido por **Cloudflare Access**. En las variables de entorno de Vercel configura:
+
+```env
+LOCAL_LLM_BASE_URL=https://ia.tudominio.com/v1
+LOCAL_LLM_MODEL=Llama 3.2 3B Instruct
+LLM_ACCESS_CLIENT_ID=valor-del-service-token
+LLM_ACCESS_CLIENT_SECRET=secreto-del-service-token
+```
+
+El hostname debe apuntar mediante Cloudflare Tunnel al servicio GPT4All del Mac (`http://127.0.0.1:4891`). Crea una política de Cloudflare Access que exija un Service Token. La aplicación enviará las credenciales de Access desde el servidor de Next.js; nunca las expongas en variables `NEXT_PUBLIC_*` ni en el navegador. No publiques GPT4All directamente en Internet.
+
 También se mantienen las variables anteriores `GPT4ALL_BASE_URL` y `GPT4ALL_MODEL` por compatibilidad. Las variables `LOCAL_LLM_*` tienen prioridad.
 
 Para una alternativa local basada en llama.cpp y modelos GGUF, consulta [docs/AGENT_SYSTEM.md](docs/AGENT_SYSTEM.md). La compatibilidad y el rendimiento deben comprobarse en el equipo antes de sustituir el motor actual.
