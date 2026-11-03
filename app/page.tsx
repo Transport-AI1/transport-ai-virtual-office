@@ -19,6 +19,7 @@ type Agent = {
 type Task = { id: number | string; title: string; owner: string; priority: "Alta" | "Media" | "Baja"; done: boolean; status?: "Pendiente" | "Trabajando" | "Revisión" | "Error" | "Completada"; result?: string; updatedAt?: string };
 type ClientStatus = "Prospecto" | "Contactado" | "Interesado" | "Propuesta enviada" | "Cliente" | "Descartado";
 type Client = { id: string; company: string; contact: string; status: ClientStatus; nextAction: string; createdAt: string };
+type MemoryEntry = { id: string; agent: string; title: string; result: string; createdAt: string };
 
 const initialAgents: Agent[] = [
   { id: 1, name: "Director de operaciones", role: "COO · Coordinación", department: "Dirección", initials: "DO", color: "#77d8d0", tint: "rgba(98,213,208,.13)", status: "Disponible", description: "Coordina equipos, prioridades y ejecución.", workload: "Supervisión general" },
@@ -65,6 +66,7 @@ export default function Home() {
   const [agents, setAgents] = useState(initialAgents);
   const [tasks, setTasks] = useState(initialTasks);
   const [clients, setClients] = useState<Client[]>([]);
+  const [agentMemory, setAgentMemory] = useState<MemoryEntry[]>([]);
   const [showClientForm, setShowClientForm] = useState(false);
   const [clientCompany, setClientCompany] = useState("");
   const [clientContact, setClientContact] = useState("");
@@ -96,6 +98,7 @@ export default function Home() {
       const savedTasks = localStorage.getItem("transport-ai-dashboard-tasks");
       const savedAgents = localStorage.getItem("transport-ai-dashboard-agents");
       const savedClients = localStorage.getItem("transport-ai-dashboard-clients");
+      const savedMemory = localStorage.getItem("transport-ai-agent-memory");
       setAutopilotEnabled(localStorage.getItem("transport-ai-autopilot") === "true");
       if (savedTasks) {
         const restoredTasks = JSON.parse(savedTasks) as Task[];
@@ -103,6 +106,7 @@ export default function Home() {
       }
       if (savedAgents) setAgents(JSON.parse(savedAgents));
       if (savedClients) setClients(JSON.parse(savedClients));
+      if (savedMemory) setAgentMemory(JSON.parse(savedMemory));
     } catch {
       setNotice("No se pudieron recuperar algunos datos guardados en este navegador.");
     }
@@ -114,7 +118,8 @@ export default function Home() {
     localStorage.setItem("transport-ai-dashboard-tasks", JSON.stringify(tasks));
     localStorage.setItem("transport-ai-dashboard-agents", JSON.stringify(agents));
     localStorage.setItem("transport-ai-dashboard-clients", JSON.stringify(clients));
-  }, [tasks, agents, clients, storageReady]);
+    localStorage.setItem("transport-ai-agent-memory", JSON.stringify(agentMemory));
+  }, [tasks, agents, clients, agentMemory, storageReady]);
 
   useEffect(() => {
     if (storageReady) localStorage.setItem("transport-ai-autopilot", String(autopilotEnabled));
@@ -132,11 +137,12 @@ export default function Home() {
       try {
         const response = await fetch("/api/execute-task", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ owner: nextTask.owner, title: nextTask.title })
+          body: JSON.stringify({ owner: nextTask.owner, title: nextTask.title, memory: agentMemory.slice(0, 5) })
         });
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "No se pudo ejecutar la tarea.");
         setTasks((current) => current.map((task) => task.id === nextTask.id ? { ...task, status: "Revisión", result: data.result, updatedAt: new Date().toISOString() } : task));
+        setAgentMemory((current) => [{ id: crypto.randomUUID(), agent: nextTask.owner, title: nextTask.title, result: String(data.result).slice(0, 3500), createdAt: new Date().toISOString() }, ...current].slice(0, 30));
         setNotice(nextTask.owner + " ha terminado un entregable. Está pendiente de tu revisión.");
       } catch (error) {
         setTasks((current) => current.map((task) => task.id === nextTask.id ? { ...task, status: "Error", result: error instanceof Error ? error.message : "Error de ejecución", updatedAt: new Date().toISOString() } : task));
@@ -217,7 +223,8 @@ export default function Home() {
           tasks: localStorage.getItem("transport-ai-dashboard-tasks"),
           agents: localStorage.getItem("transport-ai-dashboard-agents"),
           clients: localStorage.getItem("transport-ai-dashboard-clients"),
-          conversations: localStorage.getItem("transport-ai-office-chat")
+          conversations: localStorage.getItem("transport-ai-office-chat"),
+          agentMemory: localStorage.getItem("transport-ai-agent-memory")
         }
       };
       const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
@@ -325,7 +332,7 @@ export default function Home() {
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 <section className="panel p-5">
                   <div className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck size={16} className="text-teal-300" />Copia de seguridad</div>
-                  <p className="text-xs leading-relaxed text-slate-400 mt-3">Las tareas, los perfiles y las conversaciones se guardan en el almacenamiento de este navegador. Descarga una copia para conservarlos si cambias de equipo o limpias los datos del navegador.</p>
+                  <p className="text-xs leading-relaxed text-slate-400 mt-3">Las tareas, los perfiles, las conversaciones y la memoria compartida de los agentes se guardan en este navegador. Los especialistas pueden reutilizar hasta cinco entregables recientes como contexto. Descarga una copia para conservarlos si cambias de equipo o limpias los datos del navegador.</p>
                   <button className="action-button mt-5" onClick={exportBackup}><Download size={15} />Descargar copia de seguridad</button>
                   <p className="text-[10px] text-slate-600 mt-3">El archivo contiene los datos guardados en este navegador. Guárdalo en un lugar privado.</p>
                 </section>
@@ -456,7 +463,7 @@ export default function Home() {
           {active === "tasks" && (
             <>
               <div className="flex flex-wrap items-end justify-between gap-4 mb-7"><div><div className="eyebrow">Planificación y ejecución autónoma</div><h1 className="page-title">Tareas y operaciones</h1><p className="subtle">Los especialistas ejecutan tareas y preparan entregables para tu aprobación.</p></div><button className="action-button" onClick={() => setShowTaskForm(v => !v)}><Plus size={15} />Crear tarea</button></div>
-              <section className="panel p-5 mb-5"><div className="flex flex-wrap items-center justify-between gap-4"><div><div className="flex items-center gap-2 text-sm font-semibold"><BrainCircuit size={16} className="text-teal-300" />Modo de trabajo autónomo</div><p className="text-xs text-slate-500 mt-2 max-w-2xl">Cuando está activado, la oficina entrega las tareas pendientes al especialista correspondiente, guarda su resultado y lo deja para revisión. Solo procesa una tarea cada vez.</p><p className="text-[10px] text-slate-600 mt-2">Requiere abrir la oficina en localhost:3000, mantener esta página abierta y tener GPT4All con el modelo cargado. La web alojada en Vercel no puede acceder al motor de tu Mac. No envía mensajes ni realiza acciones externas.</p></div><button className={autopilotEnabled ? "action-button" : "ghost-button"} onClick={() => setAutopilotEnabled(value => !value)}>{autopilotEnabled ? "Pausar agentes" : "Activar trabajo autónomo"}</button></div><div className="flex flex-wrap gap-3 mt-4 text-[11px]"><span className="pill pill-ready"><span className="dot" />{autopilotEnabled ? (autopilotRunning ? "Agente trabajando" : "Autopiloto activo") : "Autopiloto pausado"}</span><span className="pill pill-idle">{tasks.filter(task => !task.done && (task.status || "Pendiente") === "Pendiente").length} en cola</span><span className="pill pill-review">{tasks.filter(task => task.status === "Revisión").length} para revisar</span></div></section>
+              <section className="panel p-5 mb-5"><div className="flex flex-wrap items-center justify-between gap-4"><div><div className="flex items-center gap-2 text-sm font-semibold"><BrainCircuit size={16} className="text-teal-300" />Modo de trabajo autónomo</div><p className="text-xs text-slate-500 mt-2 max-w-2xl">Cuando está activado, la oficina entrega las tareas pendientes al especialista correspondiente. Cada agente consulta la memoria compartida local y un segundo especialista revisa su entregable antes de dejarlo para tu aprobación.</p><p className="text-[10px] text-slate-600 mt-2">Requiere abrir la oficina en localhost:3000, mantener esta página abierta y tener GPT4All con el modelo cargado. La web alojada en Vercel no puede acceder al motor de tu Mac. No envía mensajes ni realiza acciones externas.</p></div><button className={autopilotEnabled ? "action-button" : "ghost-button"} onClick={() => setAutopilotEnabled(value => !value)}>{autopilotEnabled ? "Pausar agentes" : "Activar trabajo autónomo"}</button></div><div className="flex flex-wrap gap-3 mt-4 text-[11px]"><span className="pill pill-ready"><span className="dot" />{autopilotEnabled ? (autopilotRunning ? "Agente trabajando" : "Autopiloto activo") : "Autopiloto pausado"}</span><span className="pill pill-idle">{tasks.filter(task => !task.done && (task.status || "Pendiente") === "Pendiente").length} en cola</span><span className="pill pill-review">{tasks.filter(task => task.status === "Revisión").length} para revisar</span><span className="pill pill-idle">{agentMemory.length} recuerdos compartidos</span></div></section>
               {showTaskForm && <div className="panel p-5 mb-5"><div className="text-sm font-semibold mb-4">Nueva tarea</div><div className="grid grid-cols-1 md:grid-cols-[1fr_260px_auto] gap-3"><input className="input-dark" placeholder="Describe qué hay que hacer..." value={taskTitle} onChange={e => setTaskTitle(e.target.value)} onKeyDown={e => e.key === "Enter" && addTask()} /><select className="input-dark" value={taskOwner} onChange={e => setTaskOwner(e.target.value)}>{agents.map(agent => <option key={agent.id}>{agent.name}</option>)}</select><button className="action-button" onClick={addTask}>Añadir tarea</button></div></div>}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5"><div className="panel p-4"><div className="text-[11px] text-slate-500">Total de tareas</div><div className="text-2xl font-semibold mt-2">{tasks.length}</div></div><div className="panel p-4"><div className="text-[11px] text-slate-500">Pendientes</div><div className="text-2xl font-semibold mt-2">{tasks.length - completed}</div></div><div className="panel p-4"><div className="text-[11px] text-slate-500">Completadas</div><div className="text-2xl font-semibold mt-2">{completed}</div></div></div>
               <section className="panel p-5"><div className="text-sm font-semibold mb-2">Bandeja de trabajo</div>{tasks.map(task => <article className="py-4 border-b last:border-0" style={{ borderColor: "var(--line)" }} key={task.id}><div className="flex items-start gap-3"><input className="task-check mt-1" type="checkbox" checked={task.done} onChange={() => toggleTask(task.id)} /><div className="flex-1 min-w-0"><div className={`text-xs ${task.done ? "line-through text-slate-600" : "text-slate-200"}`}>{task.title}</div><div className="text-[10px] text-slate-500 mt-1">{task.owner} · {task.priority}</div></div><span className={`pill ${task.status === "Error" ? "pill-review" : task.status === "Revisión" ? "pill-review" : task.done ? "pill-ready" : "pill-idle"}`}>{task.done ? "Completada" : task.status || "Pendiente"}</span></div>{task.result && <div className="mt-3 ml-7"><button className="text-[11px] text-teal-300 hover:text-teal-200" onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}>{expandedTask === task.id ? "Ocultar entregable" : task.status === "Error" ? "Ver error" : "Ver entregable"}</button>{expandedTask === task.id && <div className="mt-2 rounded-lg p-4 text-xs leading-6 text-slate-300 whitespace-pre-wrap" style={{ background: "rgba(0,0,0,.2)", border: "1px solid var(--line)" }}>{task.result}</div>}</div>}{task.status === "Revisión" && <div className="flex justify-end gap-2 mt-3"><button className="ghost-button !py-1.5" onClick={() => retryTask(task.id)}>Solicitar otra versión</button><button className="action-button !py-1.5" onClick={() => approveTask(task.id)}>Aprobar y completar</button></div>}{task.status === "Error" && <div className="flex justify-end mt-3"><button className="ghost-button !py-1.5" onClick={() => retryTask(task.id)}>Reintentar tarea</button></div>}</article>)}{tasks.length === 0 && <p className="text-xs text-slate-500 py-6">Todavía no hay tareas. Crea la primera para empezar.</p>}</section>
