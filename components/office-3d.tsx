@@ -150,6 +150,7 @@ export default function Office3D() {
   const [error,setError] = useState("");
   const [model,setModel] = useState("");
   const [loaded,setLoaded] = useState(false);
+  const [creatingTask,setCreatingTask] = useState(false);
   const agent = staff[selected];
   const agentTasks = useMemo(()=>tasks.filter(t=>t.owner===agent.name),[tasks,agent.id]);
   const lines = chat[agent.id] || [];
@@ -173,6 +174,47 @@ export default function Office3D() {
     setTaskTitle("");
     setTab("tasks");
   }
+  async function convertMessageToTask() {
+    if (!message.trim() || creatingTask) return;
+    const brief = message.trim();
+    setCreatingTask(true);
+    setError("");
+    try {
+      let newTasks: Task[] = [];
+      if (agent.id === "operations") {
+        const response = await fetch("/api/plan-tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ brief })
+        });
+        const data = await response.json();
+        if (!response.ok || !Array.isArray(data.tasks)) throw new Error(data.error || "El Director no pudo repartir el trabajo.");
+        newTasks = data.tasks.map((task: { title: string; owner: string; priority: "Alta" | "Media" | "Baja" }, index: number) => ({
+          id: "chat-" + Date.now() + "-" + index, title: task.title, owner: task.owner,
+          priority: task.priority, done: false, status: "Pendiente"
+        }));
+      } else {
+        newTasks = [{
+          id: "chat-" + Date.now(), title: brief, owner: agent.name,
+          priority: "Media", done: false, status: "Pendiente"
+        }];
+      }
+      const saved = localStorage.getItem("transport-ai-dashboard-tasks");
+      const existing = saved ? JSON.parse(saved) as Task[] : [];
+      const combined = [...newTasks, ...existing];
+      localStorage.setItem("transport-ai-dashboard-tasks", JSON.stringify(combined));
+      setTasks(combined);
+      window.dispatchEvent(new Event("transport-ai-tasks-updated"));
+      setMessage("");
+      setTab("tasks");
+      setError("");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "No se pudo crear la tarea.");
+    } finally {
+      setCreatingTask(false);
+    }
+  }
+
   async function sendMessage() {
     if (!message.trim() || sending) return;
     const userMessage = message.trim();
@@ -251,6 +293,7 @@ export default function Office3D() {
           </div>
           {error&&<div className="mt-3 text-xs text-amber-300 rounded-lg p-3" style={{background:"rgba(218,171,85,.08)"}}>{error}</div>}
           <div className="flex gap-2 mt-4"><textarea className="input-dark min-h-[76px] resize-y" placeholder={"Escribe una instrucción para "+agent.name+"..."} value={message} onChange={e=>setMessage(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}}}/><button className="action-button self-end !px-3 !py-3" disabled={sending||!message.trim()} onClick={sendMessage}>{sending?<LoaderCircle size={15} className="animate-spin"/>:<Send size={15}/>}</button></div>
+          <div className="flex flex-wrap items-center justify-between gap-2 mt-2"><span className="text-[10px] text-slate-600">¿Quieres que se ponga a trabajar? Convierte la instrucción en una tarea.</span><button className="ghost-button !py-2" disabled={creatingTask||!message.trim()} onClick={convertMessageToTask}>{creatingTask?<LoaderCircle size={13} className="animate-spin"/>:<ClipboardList size={13}/>} {creatingTask?"Creando tarea...":agent.id==="operations"?"Repartir y activar equipo":"Asignar y ejecutar tarea"}</button></div>
           <div className="text-[10px] text-slate-600 mt-2">{model?"Modelo activo: "+model:"Modelo local configurado · Sin API de pago"}</div>
         </div>}
         {tab==="tasks"&&<div className="pt-5">
