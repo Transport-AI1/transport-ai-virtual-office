@@ -15,7 +15,13 @@ export async function GET() {
     "Llama 3.2 3B Instruct";
 
   try {
+    const accessHeaders: Record<string, string> = {};
+    if (process.env.LLM_ACCESS_CLIENT_ID && process.env.LLM_ACCESS_CLIENT_SECRET) {
+      accessHeaders["CF-Access-Client-Id"] = process.env.LLM_ACCESS_CLIENT_ID;
+      accessHeaders["CF-Access-Client-Secret"] = process.env.LLM_ACCESS_CLIENT_SECRET;
+    }
     const response = await fetch(baseUrl + "/models", {
+      headers: accessHeaders,
       cache: "no-store",
       signal: AbortSignal.timeout(7000)
     });
