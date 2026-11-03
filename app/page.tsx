@@ -70,6 +70,7 @@ export default function Home() {
   const [notice, setNotice] = useState("Panel de control local · Los agentes aún no ejecutan acciones autónomas");
   const [directorBrief, setDirectorBrief] = useState("");
   const [directorPlan, setDirectorPlan] = useState("");
+  const [directorTruncated, setDirectorTruncated] = useState(false);
   const [directorError, setDirectorError] = useState("");
   const [directorModel, setDirectorModel] = useState("");
   const [directorLoading, setDirectorLoading] = useState(false);
@@ -245,18 +246,18 @@ export default function Home() {
                   <div className="flex items-center gap-3 mb-4"><div className="avatar" style={{ background: "rgba(98,213,208,.13)", color: "#77d8d0" }}><BrainCircuit size={20} /></div><div><div className="text-sm font-semibold">Sala de planificación</div><div className="text-[10px] text-slate-500 mt-1">Describe el objetivo o problema que debe organizar</div></div></div>
                   <textarea className="input-dark min-h-[160px] resize-y leading-relaxed" placeholder="Ejemplo: Quiero conseguir tres clientes de hoteles o apartamentos turísticos. Organiza un plan comercial de dos semanas, sin gastar dinero, y reparte el trabajo entre los agentes..." value={directorBrief} onChange={e => setDirectorBrief(e.target.value)} maxLength={8000} />
                   <div className="flex flex-wrap items-center justify-between gap-3 mt-3"><span className="text-[10px] text-slate-500">{directorBrief.length}/8000 caracteres · El encargo se procesa en tu equipo</span><button className="action-button" disabled={directorLoading || !directorBrief.trim()} onClick={async () => {
-                    setDirectorLoading(true); setDirectorError(""); setDirectorPlan(""); setDirectorModel("");
+                    setDirectorLoading(true); setDirectorError(""); setDirectorPlan(""); setDirectorModel(""); setDirectorTruncated(false);
                     try {
                       const response = await fetch("/api/director", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ brief: directorBrief }) });
                       const data = await response.json();
                       if (!response.ok) throw new Error(data.error || "No se pudo generar el plan.");
-                      setDirectorPlan(data.plan); setDirectorModel(data.model || "Modelo local"); setNotice("El Director de Operaciones ha preparado un plan para revisar.");
+                      setDirectorPlan(data.plan); setDirectorModel(data.model || "Modelo local"); setDirectorTruncated(Boolean(data.truncated)); setNotice("El Director de Operaciones ha preparado un plan para revisar.");
                     } catch (error) {
                       setDirectorError(error instanceof Error ? error.message : "Ha ocurrido un error.");
                     } finally { setDirectorLoading(false); }
                   }}>{directorLoading ? <><LoaderCircle size={15} className="animate-spin" />Preparando plan...</> : <><Send size={14} />Preparar plan de trabajo</>}</button></div>
                   {directorError && <div className="mt-4 rounded-lg p-3 text-xs leading-relaxed text-amber-200" style={{ background: "rgba(218,171,85,.08)", border: "1px solid rgba(218,171,85,.2)" }}>{directorError}<div className="text-[10px] text-amber-100/60 mt-2">Comprueba que el motor local esté iniciado y que su API compatible con OpenAI esté activa. Consulta docs/AGENT_SYSTEM.md.</div></div>}
-                  {directorPlan && <div className="mt-5 border-t pt-5" style={{ borderColor: "var(--line)" }}><div className="flex flex-wrap items-center justify-between gap-2 mb-3"><div className="text-sm font-semibold flex items-center gap-2"><CheckCircle2 size={15} className="text-teal-300" />Plan preparado</div><span className="text-[10px] text-slate-500">{directorModel}</span></div><pre className="whitespace-pre-wrap font-sans text-xs leading-7 text-slate-300">{directorPlan}</pre><div className="mt-4 text-[10px] text-slate-500">Propuesta generada por IA local. Revisa y aprueba las tareas antes de ejecutarlas.</div></div>}
+                  {directorPlan && <div className="mt-5 border-t pt-5" style={{ borderColor: "var(--line)" }}><div className="flex flex-wrap items-center justify-between gap-2 mb-3"><div className="text-sm font-semibold flex items-center gap-2"><CheckCircle2 size={15} className="text-teal-300" />Plan preparado</div><span className="text-[10px] text-slate-500">{directorModel}</span></div><pre className="whitespace-pre-wrap font-sans text-xs leading-7 text-slate-300">{directorPlan}</pre><div className="mt-4 text-[10px] text-slate-500">Propuesta generada por IA local. Revisa y aprueba las tareas antes de ejecutarlas.</div>{directorTruncated && <div className="mt-3 rounded-lg p-3 text-xs text-amber-200" style={{ background: "rgba(218,171,85,.08)", border: "1px solid rgba(218,171,85,.2)" }}>La respuesta ha alcanzado el límite de generación y puede estar incompleta. Puedes pedir al Director que continúe o que resuma el plan.</div>}</div>}
                 </section>
                 <div className="space-y-4">
                   <section className="panel p-5"><div className="text-sm font-semibold mb-3">Responsabilidades</div><div className="space-y-3 text-xs text-slate-400"><div className="flex gap-2"><Check size={14} className="text-teal-300 shrink-0" />Entender objetivos y detectar datos que faltan</div><div className="flex gap-2"><Check size={14} className="text-teal-300 shrink-0" />Dividir el trabajo en tareas concretas</div><div className="flex gap-2"><Check size={14} className="text-teal-300 shrink-0" />Asignar responsables entre los ocho especialistas</div><div className="flex gap-2"><Check size={14} className="text-teal-300 shrink-0" />Detectar dependencias, riesgos y costes</div><div className="flex gap-2"><Check size={14} className="text-teal-300 shrink-0" />Entregar un plan para aprobación</div></div></section>
