@@ -126,6 +126,19 @@ export default function Home() {
   }, [autopilotEnabled, storageReady]);
 
   useEffect(() => {
+    function refreshTasks() {
+      try {
+        const saved = localStorage.getItem("transport-ai-dashboard-tasks");
+        if (saved) setTasks(JSON.parse(saved) as Task[]);
+      } catch {
+        setNotice("No se pudieron sincronizar las tareas del despacho.");
+      }
+    }
+    window.addEventListener("transport-ai-tasks-updated", refreshTasks);
+    return () => window.removeEventListener("transport-ai-tasks-updated", refreshTasks);
+  }, []);
+
+  useEffect(() => {
     if (!autopilotEnabled || !storageReady || runnerBusy.current) return;
     const nextTask = tasks.find((task) => !task.done && (task.status || "Pendiente") === "Pendiente");
     if (!nextTask) return;
