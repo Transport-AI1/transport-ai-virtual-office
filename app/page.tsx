@@ -73,6 +73,8 @@ export default function Home() {
   const [directorError, setDirectorError] = useState("");
   const [directorModel, setDirectorModel] = useState("");
   const [directorLoading, setDirectorLoading] = useState(false);
+  const [modelStatus, setModelStatus] = useState("Sin comprobar");
+  const [checkingModel, setCheckingModel] = useState(false);
   const [storageReady, setStorageReady] = useState(false);
 
   useEffect(() => {
@@ -224,7 +226,19 @@ export default function Home() {
             <>
               <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
                 <div><div className="eyebrow">Agente coordinador · COO</div><h1 className="page-title">Director de operaciones</h1><p className="subtle">Convierte tus objetivos en planes de trabajo y distribuye responsabilidades entre los nueve especialistas.</p></div>
-                <span className="pill pill-idle"><span className="dot" />Modelo local · GPT4All</span>
+                <div className="flex flex-wrap items-center gap-2"><span className="pill pill-idle"><span className="dot" />{modelStatus}</span><button className="ghost-button" disabled={checkingModel} onClick={async () => {
+                  setCheckingModel(true); setModelStatus("Comprobando conexión...");
+                  try {
+                    const response = await fetch("/api/health", { cache: "no-store" });
+                    const data = await response.json();
+                    if (!response.ok || !data.ok) throw new Error(data.error || "No se pudo comprobar el servidor local.");
+                    const available = data.modelAvailable ? "Modelo disponible" : "Modelo no encontrado";
+                    setModelStatus("Conectado · " + available);
+                    setNotice("Servidor local conectado. Modelos detectados: " + (data.models || []).join(", "));
+                  } catch (error) {
+                    setModelStatus(error instanceof Error ? error.message : "Sin conexión");
+                  } finally { setCheckingModel(false); }
+                }}>{checkingModel ? <LoaderCircle size={14} className="animate-spin" /> : <Activity size={14} />}Comprobar conexión</button></div>
               </div>
               <div className="grid grid-cols-1 xl:grid-cols-[1.35fr_.65fr] gap-4">
                 <section className="panel p-5">
@@ -241,13 +255,13 @@ export default function Home() {
                       setDirectorError(error instanceof Error ? error.message : "Ha ocurrido un error.");
                     } finally { setDirectorLoading(false); }
                   }}>{directorLoading ? <><LoaderCircle size={15} className="animate-spin" />Preparando plan...</> : <><Send size={14} />Preparar plan de trabajo</>}</button></div>
-                  {directorError && <div className="mt-4 rounded-lg p-3 text-xs leading-relaxed text-amber-200" style={{ background: "rgba(218,171,85,.08)", border: "1px solid rgba(218,171,85,.2)" }}>{directorError}<div className="text-[10px] text-amber-100/60 mt-2">Comprueba que GPT4All esté abierto y que su API Server esté activado. Consulta docs/AGENT_SYSTEM.md.</div></div>}
+                  {directorError && <div className="mt-4 rounded-lg p-3 text-xs leading-relaxed text-amber-200" style={{ background: "rgba(218,171,85,.08)", border: "1px solid rgba(218,171,85,.2)" }}>{directorError}<div className="text-[10px] text-amber-100/60 mt-2">Comprueba que el motor local esté iniciado y que su API compatible con OpenAI esté activa. Consulta docs/AGENT_SYSTEM.md.</div></div>}
                   {directorPlan && <div className="mt-5 border-t pt-5" style={{ borderColor: "var(--line)" }}><div className="flex flex-wrap items-center justify-between gap-2 mb-3"><div className="text-sm font-semibold flex items-center gap-2"><CheckCircle2 size={15} className="text-teal-300" />Plan preparado</div><span className="text-[10px] text-slate-500">{directorModel}</span></div><pre className="whitespace-pre-wrap font-sans text-xs leading-7 text-slate-300">{directorPlan}</pre><div className="mt-4 text-[10px] text-slate-500">Propuesta generada por IA local. Revisa y aprueba las tareas antes de ejecutarlas.</div></div>}
                 </section>
                 <div className="space-y-4">
                   <section className="panel p-5"><div className="text-sm font-semibold mb-3">Responsabilidades</div><div className="space-y-3 text-xs text-slate-400"><div className="flex gap-2"><Check size={14} className="text-teal-300 shrink-0" />Entender objetivos y detectar datos que faltan</div><div className="flex gap-2"><Check size={14} className="text-teal-300 shrink-0" />Dividir el trabajo en tareas concretas</div><div className="flex gap-2"><Check size={14} className="text-teal-300 shrink-0" />Asignar responsables entre los ocho especialistas</div><div className="flex gap-2"><Check size={14} className="text-teal-300 shrink-0" />Detectar dependencias, riesgos y costes</div><div className="flex gap-2"><Check size={14} className="text-teal-300 shrink-0" />Entregar un plan para aprobación</div></div></section>
-                  <section className="panel p-5"><div className="flex items-center gap-2 text-sm font-semibold mb-2"><ShieldCheck size={15} className="text-teal-300" />Control y privacidad</div><p className="text-xs text-slate-500 leading-relaxed">El modelo se ejecuta en tu ordenador mediante GPT4All. No se envían encargos a una API externa. El Director no contacta clientes, no publica, no compra ni despliega nada.</p></section>
-                  <section className="panel p-5"><div className="text-sm font-semibold mb-2">Activación del modelo</div><p className="text-xs text-slate-500 leading-relaxed">Esta función necesita GPT4All abierto, un modelo cargado y su API Server activo. La guía de instalación está en <span className="text-teal-300">docs/AGENT_SYSTEM.md</span>. No se ha activado ningún servicio de pago.</p></section>
+                  <section className="panel p-5"><div className="flex items-center gap-2 text-sm font-semibold mb-2"><ShieldCheck size={15} className="text-teal-300" />Control y privacidad</div><p className="text-xs text-slate-500 leading-relaxed">El modelo se ejecuta en tu ordenador mediante un servidor local compatible. No se envían encargos a una API externa. El Director no contacta clientes, no publica, no compra ni despliega nada.</p></section>
+                  <section className="panel p-5"><div className="text-sm font-semibold mb-2">Activación del modelo</div><p className="text-xs text-slate-500 leading-relaxed">Esta función necesita un servidor local de IA activo y un modelo cargado. La guía de instalación está en <span className="text-teal-300">docs/AGENT_SYSTEM.md</span>. No se ha activado ningún servicio de pago.</p></section>
                 </div>
               </div>
             </>
