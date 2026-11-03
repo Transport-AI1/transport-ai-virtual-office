@@ -14,35 +14,30 @@ La persistencia actual es local al navegador: no sincroniza automáticamente ent
 
 ## Agentes y ejecución
 
-Los nueve perfiles e instrucciones están versionados en `lib/agents.ts`. El endpoint `POST /api/agents` permite conversar con cada especialista usando Ollama. El Director de Operaciones también tiene el endpoint `POST /api/director` para generar planes.
+Los nueve perfiles e instrucciones están versionados en `lib/agents.ts`. El endpoint `POST /api/agents` permite conversar con cada especialista usando la API local compatible con OpenAI de GPT4All. El Director de Operaciones utiliza `POST /api/director`.
 
-- Modelo predeterminado: `qwen2.5:3b`
-- Dirección local: `http://127.0.0.1:11434`
-- Variable opcional: `OLLAMA_MODEL`
-- Variable opcional: `OLLAMA_BASE_URL`
+- Dirección predeterminada: `http://127.0.0.1:4891/v1`
+- Endpoint: `/chat/completions`
+- Modelo predeterminado: `Llama 3.2 3B Instruct`
+- Variable opcional: `GPT4ALL_BASE_URL`
+- Variable opcional: `GPT4ALL_MODEL`
 
-No se simulan resultados: si Ollama no está disponible, la interfaz muestra un error.
+No se simulan resultados: si GPT4All no está disponible o el modelo no está cargado, la interfaz muestra un error.
 
 ## Activar IA sin pagar una API
 
-1. Instala Ollama desde https://ollama.com.
-2. Descarga el modelo desde Terminal: `ollama pull qwen2.5:3b`.
-3. Abre Ollama y comprueba que está ejecutándose.
-4. Si usas la aplicación publicada en Vercel, el navegador puede intentar conectarse directamente al Ollama de tu propio Mac. Para permitirlo, añade el dominio exacto de tu web a los orígenes autorizados.
-5. En macOS, abre Terminal y ejecuta (sustituye el dominio de ejemplo por el dominio real de Vercel):
+1. Abre GPT4All en tu Mac.
+2. Descarga o selecciona el modelo que quieras utilizar (la configuración inicial contempla `Llama 3.2 3B Instruct`).
+3. Activa **Enable Local API Server** en los ajustes de GPT4All. La dirección habitual es `http://127.0.0.1:4891/v1`.
+4. Comprueba que el servidor está activo y que el modelo está cargado.
+5. En tu Mac, abre Terminal dentro de la carpeta del proyecto y ejecuta `npm run dev`.
+6. Abre `http://localhost:3000`. Las rutas de Next.js se ejecutan en el mismo Mac y pueden acceder a GPT4All en `127.0.0.1`.
 
-```bash
-launchctl setenv OLLAMA_ORIGINS "https://transport-ai-virtual-office-transport-ai2.vercel.app,http://localhost:3000"
-```
+Si el nombre del modelo que muestra GPT4All es diferente, puedes definir `GPT4ALL_MODEL` en el entorno de Next.js con el nombre exacto devuelto por `/v1/models`.
 
-6. Cierra Ollama completamente y vuelve a abrirlo para que recoja la variable.
-7. Mantén Ollama escuchando solo en localhost. No configures `OLLAMA_HOST=0.0.0.0` ni abras el puerto 11434 a Internet.
+## Importante sobre Vercel
 
-Ollama documenta `OLLAMA_ORIGINS` para permitir orígenes web adicionales y `launchctl setenv` para establecer variables al ejecutar la aplicación de macOS: https://github.com/ollama/ollama/blob/main/docs/faq.mdx.
-
-### Importante sobre Vercel
-
-Una función alojada en Vercel no puede acceder a `127.0.0.1` de tu Mac. Por eso el chat de los despachos intenta primero el endpoint de la aplicación y, si el servidor no tiene acceso a Ollama, prueba desde el navegador contra el Ollama local. Para que esto funcione desde la web publicada, hay que autorizar el origen exacto con `OLLAMA_ORIGINS` y mantener el Mac encendido con Ollama abierto.
+Una función alojada en Vercel no puede acceder a `127.0.0.1` de tu Mac. Por tanto, la conexión del servidor que acabamos de configurar está pensada para desarrollo local: Next.js y GPT4All deben ejecutarse en el mismo ordenador. La web publicada no podrá utilizar este endpoint local directamente. No expongas el puerto 4891 a Internet ni publiques una API local sin autenticación y controles de seguridad.
 
 ## Qué puede hacer cada trabajador
 
