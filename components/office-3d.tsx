@@ -23,7 +23,7 @@ function Desk({color,selected}:{color:string;selected:boolean}) {
     <mesh position={[0,.68,-.38]}><boxGeometry args={[1.9,.035,.92]}/><meshStandardMaterial color="#b28a61" roughness={.55}/></mesh>
     {[[-.88,.36,-.78],[.88,.36,-.78],[-.88,.36,.02],[.88,.36,.02]].map((p:any,i:number)=><mesh key={i} position={p}><boxGeometry args={[.075,.72,.075]}/><meshStandardMaterial color="#333b40" metalness={.65} roughness={.3}/></mesh>)}
     <mesh position={[0,1.13,-.68]} castShadow><boxGeometry args={[.92,.58,.075]}/><meshStandardMaterial color="#111a20" metalness={.35} roughness={.25}/></mesh>
-    <mesh position={[0,1.13,-.635]}><planeGeometry args={[.82,.47]}/><meshStandardMaterial color={selected?"#285c5a":"#29434a"} emissive={color} emissiveIntensity={selected?.22:.08} roughness={.35}/></mesh>
+    <mesh position={[0,1.13,-.635]}><planeGeometry args={[.82,.47]}/><meshStandardMaterial color={selected?"#285c5a":"#29434a"} emissive={color} emissiveIntensity={selected ? 0.22 : 0.08} roughness={.35}/></mesh>
     <mesh position={[0,.84,-.63]}><boxGeometry args={[.11,.12,.11]}/><meshStandardMaterial color="#68777a" metalness={.7}/></mesh>
     <mesh position={[0,.83,-.34]}><boxGeometry args={[.68,.025,.22]}/><meshStandardMaterial color="#20292d" roughness={.7}/></mesh>
     <mesh position={[.67,.84,-.28]}><cylinderGeometry args={[.075,.075,.1,18]}/><meshStandardMaterial color="#d8ded8"/></mesh>
@@ -45,7 +45,7 @@ function OfficeChair({position=[0,0,0]}:{position?:[number,number,number]}) {
 function Plant({position,scale=1}:{position:[number,number,number];scale?:number}) {
   return <group position={position} scale={scale}>
     <mesh position={[0,.25,0]}><cylinderGeometry args={[.22,.17,.48,16]}/><meshStandardMaterial color="#a58a6c" roughness={.85}/></mesh>
-    {Array.from({length:7},(_,i)=><mesh key={i} position={[Math.sin(i*2.4)*.16,.67+(i%3)*.1,Math.cos(i*2.4)*.16]} rotation={[.2, i*1.2, Math.sin(i)*.35]}><sphereGeometry args={[.13,.0+10,8]}/><meshStandardMaterial color={i%2?"#47785e":"#638d69"} roughness={.9}/></mesh>)}
+    {Array.from({length:7},(_,i)=><mesh key={i} position={[Math.sin(i*2.4)*.16,.67+(i%3)*.1,Math.cos(i*2.4)*.16]} rotation={[.2, i*1.2, Math.sin(i)*.35]}><sphereGeometry args={[.13,10,8]}/><meshStandardMaterial color={i%2?"#47785e":"#638d69"} roughness={.9}/></mesh>)}
   </group>;
 }
 
