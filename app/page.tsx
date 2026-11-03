@@ -75,7 +75,7 @@ export default function Home() {
   const [taskOwner, setTaskOwner] = useState(initialAgents[0].name);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [notice, setNotice] = useState("Panel de control local · Los agentes aún no ejecutan acciones autónomas");
+  const [notice, setNotice] = useState("Panel local · Agentes preparados para ejecutar tareas asignadas");
   const [directorBrief, setDirectorBrief] = useState("");
   const [directorPlan, setDirectorPlan] = useState("");
   const [directorTruncated, setDirectorTruncated] = useState(false);
