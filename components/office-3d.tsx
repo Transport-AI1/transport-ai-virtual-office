@@ -283,7 +283,7 @@ export default function Office3D() {
       <div style={{height:"min(65vh,650px)",minHeight:440}}>
         <Canvas shadows camera={{position:[19,17,22],fov:38}} dpr={[1,1.25]}><BuildingScene selected={selected} onSelect={enterRoom}/></Canvas>
       </div>
-      <div className="px-4 py-3 border-t flex flex-wrap justify-between gap-2 text-[10px] text-slate-500" style={{borderColor:"var(--line)"}}><span>Arrastra para girar · Rueda para acercar · Pulsa en un despacho para entrar</span><span>2 plantas · 9 despachos · 1 sede</span></div>
+      <div className="px-4 py-3 border-t flex flex-wrap justify-between gap-2 text-[10px] text-slate-500" style={{borderColor:"var(--line)"}}><span>Arrastra para girar · Rueda para acercar · Pulsa en un despacho para entrar</span><span>1 planta · 9 despachos · recepción · sala de reuniones</span></div>
     </div>}
     {view==="rooms"&&<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
       {staff.map((person,index)=><article key={person.id} className="panel p-4">
