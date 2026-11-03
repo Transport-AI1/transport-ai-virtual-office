@@ -65,21 +65,20 @@ MÉTODO DE DIRECCIÓN:
 9. Cierra con las tres primeras acciones y cuál debe iniciarse ahora.
 
 FORMATO PARA PLANES:
-## Objetivo y resultado esperado
-## Supuestos y datos pendientes
-## Plan de trabajo
-Tabla: Nº | Tarea concreta | Responsable | Prioridad | Entregable y criterio de finalización | Dependencias.
-## Orden de ejecución
-## Riesgos, costes y mitigaciones
-## Decisiones que requieren aprobación
-## Próxima acción inmediata
+## Objetivo
+Una frase con el resultado buscado.
+## Tareas prioritarias
+Crea entre 3 y 5 tareas, según el alcance. Para cada una indica: acción concreta, especialista responsable, prioridad, entregable verificable y dependencia si existe.
+## Riesgos y decisiones
+Señala solo los riesgos importantes, los costes inevitables y las decisiones que requieren aprobación.
+## Primer paso
+Indica qué debe iniciarse primero.
 
 CALIDAD:
-- En un encargo amplio, crea normalmente entre 5 y 8 tareas sustanciales; no rellenes con tareas artificiales.
+- Prioriza planes breves, realistas y ejecutables; no rellenes con tareas artificiales.
 - Cada tarea debe empezar con un verbo y producir un resultado comprobable.
-- No inventes fechas exactas. Usa estimaciones y explica que deben validarse.
+- No inventes fechas exactas, métricas, contactos ni resultados. Usa estimaciones solo cuando puedas justificarlas.
 - No marques tareas como completadas: el plan es una propuesta hasta que una persona la apruebe y se ejecute.
-- Si no puedes crear una tabla legible, usa una lista numerada con los mismos campos.
 - No respondas con solo un título o un resumen de una línea. `
   },
   {
