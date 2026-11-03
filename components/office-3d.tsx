@@ -134,7 +134,7 @@ export default function Office3D() {
 
     try {
       let reply = "";
-      let modelName = "Ollama local";
+      let modelName = "GPT4All local";
       try {
         const response = await fetch("/api/agents", {
           method: "POST",
@@ -150,27 +150,27 @@ export default function Office3D() {
         if (!profile) throw new Error("No se ha encontrado el perfil de este agente.");
         let localResponse: Response;
         try {
-          localResponse = await fetch("http://127.0.0.1:11434/api/chat", {
+          localResponse = await fetch("http://127.0.0.1:4891/v1/chat/completions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              model: "qwen2.5:3b",
+              model: "Llama 3.2 3B Instruct",
               stream: false,
               messages: [
                 { role: "system", content: profile.systemPrompt + "\n\nResponde en español con pasos concretos y entregables. Nunca afirmes que has ejecutado acciones externas. Pide aprobación humana para cualquier acción fuera de esta conversación." },
                 ...history,
                 { role: "user", content: userMessage }
               ],
-              options: { temperature: 0.35 }
+              temperature: 0.35
             }),
             signal: AbortSignal.timeout(120000)
           });
         } catch {
-          throw new Error("No se pudo conectar con Ollama en este Mac. Comprueba que está abierto y que OLLAMA_ORIGINS permite el dominio de esta web.");
+          throw new Error("No se pudo conectar con GPT4All en este Mac. Comprueba que está abierto y que su API Server está activo en el puerto 4891.");
         }
-        if (!localResponse.ok) throw new Error("Ollama local respondió con el estado " + localResponse.status + ".");
+        if (!localResponse.ok) throw new Error("GPT4All local respondió con el estado " + localResponse.status + ".");
         const localData = await localResponse.json();
-        reply = localData.message?.content?.trim() || "El modelo no ha devuelto una respuesta.";
+        reply = localData.choices?.[0]?.message?.content?.trim() || "El modelo no ha devuelto una respuesta.";
         modelName = localData.model || modelName;
       }
       setChat(current => ({ ...current, [agent.id]: [...(current[agent.id] || []), { role: "assistant", content: reply }] }));
@@ -224,14 +224,14 @@ export default function Office3D() {
           <div className="flex flex-wrap gap-2"><button className="action-button" onClick={()=>setTab("chat")}><MessageSquare size={14}/>Dar una instrucción</button><button className="ghost-button" onClick={()=>setTab("tasks")}><ClipboardList size={14}/>Asignar una tarea</button></div>
         </div>}
         {tab==="chat"&&<div className="pt-4">
-          <div className="rounded-lg p-3 mb-3 text-[11px] text-slate-400" style={{background:"rgba(98,213,208,.05)"}}>Conversación privada con {agent.name}. Requiere Ollama instalado en el mismo equipo donde se ejecuta la aplicación.</div>
+          <div className="rounded-lg p-3 mb-3 text-[11px] text-slate-400" style={{background:"rgba(98,213,208,.05)"}}>Conversación privada con {agent.name}. Requiere GPT4All abierto y su API Server activo en el mismo equipo.</div>
           <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1">
             {lines.length===0&&<div className="text-center py-10 text-xs text-slate-500">Todavía no hay mensajes. Escribe una instrucción para empezar.</div>}
             {lines.map((line,i)=><div key={i} className={"rounded-xl p-3 text-xs leading-relaxed whitespace-pre-wrap "+(line.role==="user"?"ml-8 text-slate-100":"mr-5 text-slate-300")} style={{background:line.role==="user"?"rgba(98,213,208,.12)":"rgba(255,255,255,.04)",border:"1px solid var(--line)"}}><div className="text-[9px] uppercase tracking-wider text-slate-500 mb-2">{line.role==="user"?"Tú":agent.name}</div>{line.content}</div>)}
           </div>
           {error&&<div className="mt-3 text-xs text-amber-300 rounded-lg p-3" style={{background:"rgba(218,171,85,.08)"}}>{error}</div>}
           <div className="flex gap-2 mt-4"><textarea className="input-dark min-h-[76px] resize-y" placeholder={"Escribe una instrucción para "+agent.name+"..."} value={message} onChange={e=>setMessage(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}}}/><button className="action-button self-end !px-3 !py-3" disabled={sending||!message.trim()} onClick={sendMessage}>{sending?<LoaderCircle size={15} className="animate-spin"/>:<Send size={15}/>}</button></div>
-          <div className="text-[10px] text-slate-600 mt-2">{model?"Modelo activo: "+model:"Modelo local configurado: Qwen 2.5 3B · Sin API de pago"}</div>
+          <div className="text-[10px] text-slate-600 mt-2">{model?"Modelo activo: "+model:"Modelo local configurado: Llama 3.2 3B · GPT4All · Sin API de pago"}</div>
         </div>}
         {tab==="tasks"&&<div className="pt-5">
           <div className="text-sm font-semibold mb-1">Bandeja de trabajo</div><p className="text-xs text-slate-500 mb-4">Asigna trabajo a este especialista. Las tareas se guardan en este navegador.</p>
@@ -246,6 +246,6 @@ export default function Office3D() {
         <div className="panel p-5"><div className="text-sm font-semibold mb-2">Acceso rápido al equipo</div><div className="space-y-1">{staff.map((person,index)=><button key={person.id} onClick={()=>enterRoom(index)} className="w-full flex items-center gap-2 rounded-lg p-2 text-left hover:bg-white/5"><span className="w-2 h-2 rounded-full" style={{background:person.color}}/><span className="text-xs text-slate-300 flex-1">{person.name}</span>{selected===index&&<span className="text-[9px] text-teal-300">Abierto</span>}</button>)}</div></div>
       </aside>
     </div>}
-    <p className="text-[10px] text-slate-600">La actividad y las tareas se guardan localmente en este navegador. Para que los agentes respondan, ejecuta la aplicación y Ollama en el mismo ordenador; una web alojada en Vercel no puede conectarse directamente a tu Mac.</p>
+    <p className="text-[10px] text-slate-600">La actividad y las tareas se guardan localmente en este navegador. Para que los agentes respondan, ejecuta la aplicación y GPT4All en el mismo ordenador; una web alojada en Vercel no puede conectarse directamente a tu Mac.</p>
   </div>;
 }
