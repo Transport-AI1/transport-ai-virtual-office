@@ -32,9 +32,14 @@ function messageText(data: ChatCompletionResponse) {
 }
 
 async function askModel(baseUrl: string, model: string, messages: Array<{ role: string; content: string }>, maxTokens: number) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (process.env.LLM_ACCESS_CLIENT_ID && process.env.LLM_ACCESS_CLIENT_SECRET) {
+    headers["CF-Access-Client-Id"] = process.env.LLM_ACCESS_CLIENT_ID;
+    headers["CF-Access-Client-Secret"] = process.env.LLM_ACCESS_CLIENT_SECRET;
+  }
   const response = await fetch(baseUrl + "/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ model, stream: false, max_tokens: maxTokens, temperature: 0.25, top_p: 0.9, messages }),
     signal: AbortSignal.timeout(180000),
   });
