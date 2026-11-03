@@ -190,7 +190,7 @@ export default function Home() {
       const response = await fetch("/api/plan-tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brief: directorBrief })
+        body: JSON.stringify({ brief: directorBrief, memory: agentMemory.slice(0, 5) })
       });
       const data = await response.json();
       if (!response.ok || !Array.isArray(data.tasks)) throw new Error(data.error || "El Director no ha podido crear la cola de trabajo.");
