@@ -3,6 +3,12 @@ import { getAgent } from "@/lib/agents";
 
 export const runtime = "nodejs";
 
+type ChatCompletionResponse = {
+  choices?: Array<{ message?: { content?: string | Array<{ type?: string; text?: string }> } }>;
+  model?: string;
+  error?: { message?: string };
+};
+
 export async function POST(request: NextRequest) {
   let body: { agentId?: unknown; message?: unknown; history?: unknown };
   try {
@@ -27,36 +33,53 @@ export async function POST(request: NextRequest) {
     return [{ role: row.role, content: row.content.slice(0, 4000) }];
   });
 
-  const baseUrl = (process.env.OLLAMA_BASE_URL || "http://127.0.0.1:11434").replace(/\/$/, "");
-  const model = process.env.OLLAMA_MODEL || "qwen2.5:3b";
+  // GPT4All exposes an OpenAI-compatible local API when its API server is enabled.
+  const baseUrl = (process.env.GPT4ALL_BASE_URL || "http://127.0.0.1:4891/v1").replace(/\/$/, "");
+  const model = process.env.GPT4ALL_MODEL || "Llama 3.2 3B Instruct";
 
   try {
-    const response = await fetch(baseUrl + "/api/chat", {
+    const response = await fetch(baseUrl + "/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
         stream: false,
         messages: [
-          { role: "system", content: agent.systemPrompt + "\n\nEres un trabajador de una oficina virtual. Responde en español, con pasos concretos y entregables. No afirmes haber ejecutado acciones externas. Si te piden algo que requiere acceso a otras herramientas, explica que puedes preparar el trabajo pero necesitas una integración y aprobación humana." },
+          {
+            role: "system",
+            content: agent.systemPrompt + "\n\nEres un trabajador de una oficina virtual. Responde en español, con pasos concretos y entregables. No afirmes haber ejecutado acciones externas. Si te piden algo que requiere acceso a otras herramientas, explica que puedes preparar el trabajo pero necesitas una integración y aprobación humana."
+          },
           ...safeHistory,
           { role: "user", content: message }
         ],
-        options: { temperature: 0.35 }
+        temperature: 0.35
       }),
       signal: AbortSignal.timeout(120000)
     });
 
     if (!response.ok) {
-      return NextResponse.json({ error: "Ollama respondió con el estado " + response.status + "." }, { status: 502 });
+      const detail = await response.text().catch(() => "");
+      return NextResponse.json({
+        error: "GPT4All respondió con el estado " + response.status + (detail ? ": " + detail.slice(0, 300) : "")
+      }, { status: 502 });
     }
-    const data = await response.json() as { message?: { content?: string }; model?: string };
-    const reply = data.message?.content?.trim();
-    if (!reply) return NextResponse.json({ error: "El modelo no ha devuelto una respuesta." }, { status: 502 });
+
+    const data = await response.json() as ChatCompletionResponse;
+    const content = data.choices?.[0]?.message?.content;
+    const reply = typeof content === "string"
+      ? content.trim()
+      : Array.isArray(content)
+        ? content.map((part) => part.text || "").join("\n").trim()
+        : "";
+
+    if (!reply) {
+      return NextResponse.json({ error: "GPT4All no ha devuelto una respuesta. Comprueba que el modelo esté cargado." }, { status: 502 });
+    }
+
     return NextResponse.json({ reply, model: data.model || model, agent: agent.name });
   } catch {
     return NextResponse.json({
-      error: "No se encuentra Ollama en este equipo. El chat de agentes funciona cuando Next.js y Ollama se ejecutan en el mismo ordenador."
+      error: "No se puede conectar con GPT4All en este equipo. Abre GPT4All, activa su API Server y comprueba que escucha en http://127.0.0.1:4891."
     }, { status: 503 });
   }
 }
