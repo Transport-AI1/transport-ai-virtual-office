@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
     return [{ role: row.role, content: row.content.slice(0, 4000) }];
   });
 
-  const baseUrl = (process.env.GPT4ALL_BASE_URL || "http://127.0.0.1:4891/v1").replace(/\/$/, "");
-  const model = process.env.GPT4ALL_MODEL || "Llama 3.2 3B Instruct";
+  const baseUrl = (process.env.LOCAL_LLM_BASE_URL || process.env.GPT4ALL_BASE_URL || "http://127.0.0.1:4891/v1").replace(/\/$/, "");
+  const model = process.env.LOCAL_LLM_MODEL || process.env.GPT4ALL_MODEL || "Llama 3.2 3B Instruct";
 
   try {
     const response = await fetch(baseUrl + "/chat/completions", {
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const detail = await response.text().catch(() => "");
       return NextResponse.json({
-        error: "GPT4All respondió con el estado " + response.status + (detail ? ": " + detail.slice(0, 300) : "")
+        error: "El servidor local respondió con el estado " + response.status + (detail ? ": " + detail.slice(0, 300) : "")
       }, { status: 502 });
     }
 
@@ -74,13 +74,13 @@ export async function POST(request: NextRequest) {
         : "";
 
     if (!reply) {
-      return NextResponse.json({ error: "GPT4All no ha devuelto una respuesta. Comprueba que el modelo esté cargado." }, { status: 502 });
+      return NextResponse.json({ error: "El servidor local no ha devuelto una respuesta. Comprueba que el modelo esté cargado." }, { status: 502 });
     }
 
     return NextResponse.json({ reply, model: data.model || model, agent: agent.name });
   } catch {
     return NextResponse.json({
-      error: "No se puede conectar con GPT4All en este equipo. Abre GPT4All, activa su API Server y comprueba que escucha en http://127.0.0.1:4891."
+      error: "No se puede conectar con el servidor local de IA. Comprueba que está iniciado y que la dirección configurada es correcta."
     }, { status: 503 });
   }
 }
