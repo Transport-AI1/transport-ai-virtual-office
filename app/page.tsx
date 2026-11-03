@@ -84,14 +84,22 @@ export default function Home() {
   const [directorLoading, setDirectorLoading] = useState(false);
   const [modelStatus, setModelStatus] = useState("Sin comprobar");
   const [checkingModel, setCheckingModel] = useState(false);
-  const [storageReady, setStorageReady] = useState(false);\n  const [autopilotEnabled, setAutopilotEnabled] = useState(false);\n  const [autopilotRunning, setAutopilotRunning] = useState(false);\n  const [expandedTask, setExpandedTask] = useState<number | string | null>(null);\n  const runnerBusy = useRef(false);
+  const [storageReady, setStorageReady] = useState(false);
+  const [autopilotEnabled, setAutopilotEnabled] = useState(false);
+  const [autopilotRunning, setAutopilotRunning] = useState(false);
+  const [expandedTask, setExpandedTask] = useState<number | string | null>(null);
+  const runnerBusy = useRef(false);
 
   useEffect(() => {
     try {
       const savedTasks = localStorage.getItem("transport-ai-dashboard-tasks");
       const savedAgents = localStorage.getItem("transport-ai-dashboard-agents");
-      const savedClients = localStorage.getItem("transport-ai-dashboard-clients");\n      setAutopilotEnabled(localStorage.getItem("transport-ai-autopilot") === "true");
-      if (savedTasks) {\n        const restoredTasks = JSON.parse(savedTasks) as Task[];\n        setTasks(restoredTasks.map((task) => task.status === "Trabajando" ? { ...task, status: "Pendiente" } : task));\n      }
+      const savedClients = localStorage.getItem("transport-ai-dashboard-clients");
+      setAutopilotEnabled(localStorage.getItem("transport-ai-autopilot") === "true");
+      if (savedTasks) {
+        const restoredTasks = JSON.parse(savedTasks) as Task[];
+        setTasks(restoredTasks.map((task) => task.status === "Trabajando" ? { ...task, status: "Pendiente" } : task));
+      }
       if (savedAgents) setAgents(JSON.parse(savedAgents));
       if (savedClients) setClients(JSON.parse(savedClients));
     } catch {
@@ -107,13 +115,56 @@ export default function Home() {
     localStorage.setItem("transport-ai-dashboard-clients", JSON.stringify(clients));
   }, [tasks, agents, clients, storageReady]);
 
-  useEffect(() => {\n    if (storageReady) localStorage.setItem("transport-ai-autopilot", String(autopilotEnabled));\n  }, [autopilotEnabled, storageReady]);\n\n  useEffect(() => {\n    if (!autopilotEnabled || !storageReady || runnerBusy.current) return;\n    const nextTask = tasks.find((task) => !task.done && (task.status || "Pendiente") === "Pendiente");\n    if (!nextTask) return;\n    const timer = window.setTimeout(async () => {\n      runnerBusy.current = true;\n      setAutopilotRunning(true);\n      setNotice("Un agente está trabajando: " + nextTask.owner);\n      setTasks((current) => current.map((task) => task.id === nextTask.id ? { ...task, status: "Trabajando", updatedAt: new Date().toISOString() } : task));\n      try {\n        const response = await fetch("/api/execute-task", {\n          method: "POST", headers: { "Content-Type": "application/json" },\n          body: JSON.stringify({ owner: nextTask.owner, title: nextTask.title })\n        });\n        const data = await response.json();\n        if (!response.ok) throw new Error(data.error || "No se pudo ejecutar la tarea.");\n        setTasks((current) => current.map((task) => task.id === nextTask.id ? { ...task, status: "Revisión", result: data.result, updatedAt: new Date().toISOString() } : task));\n        setNotice(nextTask.owner + " ha terminado un entregable. Está pendiente de tu revisión.");\n      } catch (error) {\n        setTasks((current) => current.map((task) => task.id === nextTask.id ? { ...task, status: "Error", result: error instanceof Error ? error.message : "Error de ejecución", updatedAt: new Date().toISOString() } : task));\n        setNotice("Un agente no ha podido completar su tarea. Revisa el error en la bandeja.");\n      } finally {\n        runnerBusy.current = false;\n        setAutopilotRunning(false);\n      }\n    }, 1200);\n    return () => window.clearTimeout(timer);\n  }, [autopilotEnabled, autopilotRunning, storageReady, tasks]);\n\n  const completed = tasks.filter((task) => task.done).length;
+  useEffect(() => {
+    if (storageReady) localStorage.setItem("transport-ai-autopilot", String(autopilotEnabled));
+  }, [autopilotEnabled, storageReady]);
+
+  useEffect(() => {
+    if (!autopilotEnabled || !storageReady || runnerBusy.current) return;
+    const nextTask = tasks.find((task) => !task.done && (task.status || "Pendiente") === "Pendiente");
+    if (!nextTask) return;
+    const timer = window.setTimeout(async () => {
+      runnerBusy.current = true;
+      setAutopilotRunning(true);
+      setNotice("Un agente está trabajando: " + nextTask.owner);
+      setTasks((current) => current.map((task) => task.id === nextTask.id ? { ...task, status: "Trabajando", updatedAt: new Date().toISOString() } : task));
+      try {
+        const response = await fetch("/api/execute-task", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ owner: nextTask.owner, title: nextTask.title })
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "No se pudo ejecutar la tarea.");
+        setTasks((current) => current.map((task) => task.id === nextTask.id ? { ...task, status: "Revisión", result: data.result, updatedAt: new Date().toISOString() } : task));
+        setNotice(nextTask.owner + " ha terminado un entregable. Está pendiente de tu revisión.");
+      } catch (error) {
+        setTasks((current) => current.map((task) => task.id === nextTask.id ? { ...task, status: "Error", result: error instanceof Error ? error.message : "Error de ejecución", updatedAt: new Date().toISOString() } : task));
+        setNotice("Un agente no ha podido completar su tarea. Revisa el error en la bandeja.");
+      } finally {
+        runnerBusy.current = false;
+        setAutopilotRunning(false);
+      }
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, [autopilotEnabled, autopilotRunning, storageReady, tasks]);
+
+  const completed = tasks.filter((task) => task.done).length;
   const filteredAgents = useMemo(() => agents.filter((agent) =>
     `${agent.name} ${agent.role} ${agent.department}`.toLowerCase().includes(search.toLowerCase())
   ), [agents, search]);
 
   function toggleTask(id: number | string) {
-    setTasks((current) => current.map((task) => task.id === id ? { ...task, done: !task.done } : task));
+    setTasks((current) => current.map((task) => task.id === id ? { ...task, done: !task.done, status: !task.done ? "Completada" : "Pendiente" } : task));
+  }
+
+  function approveTask(id: number | string) {
+    setTasks((current) => current.map((task) => task.id === id ? { ...task, done: true, status: "Completada", updatedAt: new Date().toISOString() } : task));
+    setNotice("Entregable aprobado y tarea completada.");
+  }
+
+  function retryTask(id: number | string) {
+    setTasks((current) => current.map((task) => task.id === id ? { ...task, done: false, status: "Pendiente", result: undefined } : task));
+    setNotice("Tarea devuelta a la cola de trabajo.");
   }
 
   function addTask() {
@@ -372,7 +423,8 @@ export default function Home() {
 
           {active === "tasks" && (
             <>
-              <div className="flex flex-wrap items-end justify-between gap-4 mb-7"><div><div className="eyebrow">Planificación y ejecución autónoma</div><h1 className="page-title">Tareas y operaciones</h1><p className="subtle">Los especialistas ejecutan tareas y preparan entregables para tu aprobación.</p></div><button className="action-button" onClick={() => setShowTaskForm(v => !v)}><Plus size={15} />Crear tarea</button></div>\n              <section className="panel p-5 mb-5"><div className="flex flex-wrap items-center justify-between gap-4"><div><div className="flex items-center gap-2 text-sm font-semibold"><BrainCircuit size={16} className="text-teal-300" />Modo de trabajo autónomo</div><p className="text-xs text-slate-500 mt-2 max-w-2xl">Cuando está activado, la oficina entrega las tareas pendientes al especialista correspondiente, guarda su resultado y lo deja para revisión. Solo procesa una tarea cada vez.</p><p className="text-[10px] text-slate-600 mt-2">Requiere esta página abierta y GPT4All con el modelo cargado. No envía mensajes ni realiza acciones externas.</p></div><button className={autopilotEnabled ? "action-button" : "ghost-button"} onClick={() => setAutopilotEnabled(value => !value)}>{autopilotEnabled ? "Pausar agentes" : "Activar trabajo autónomo"}</button></div><div className="flex flex-wrap gap-3 mt-4 text-[11px]"><span className="pill pill-ready"><span className="dot" />{autopilotEnabled ? (autopilotRunning ? "Agente trabajando" : "Autopiloto activo") : "Autopiloto pausado"}</span><span className="pill pill-idle">{tasks.filter(task => !task.done && (task.status || "Pendiente") === "Pendiente").length} en cola</span><span className="pill pill-review">{tasks.filter(task => task.status === "Revisión").length} para revisar</span></div></section>
+              <div className="flex flex-wrap items-end justify-between gap-4 mb-7"><div><div className="eyebrow">Planificación y ejecución autónoma</div><h1 className="page-title">Tareas y operaciones</h1><p className="subtle">Los especialistas ejecutan tareas y preparan entregables para tu aprobación.</p></div><button className="action-button" onClick={() => setShowTaskForm(v => !v)}><Plus size={15} />Crear tarea</button></div>
+              <section className="panel p-5 mb-5"><div className="flex flex-wrap items-center justify-between gap-4"><div><div className="flex items-center gap-2 text-sm font-semibold"><BrainCircuit size={16} className="text-teal-300" />Modo de trabajo autónomo</div><p className="text-xs text-slate-500 mt-2 max-w-2xl">Cuando está activado, la oficina entrega las tareas pendientes al especialista correspondiente, guarda su resultado y lo deja para revisión. Solo procesa una tarea cada vez.</p><p className="text-[10px] text-slate-600 mt-2">Requiere esta página abierta y GPT4All con el modelo cargado. No envía mensajes ni realiza acciones externas.</p></div><button className={autopilotEnabled ? "action-button" : "ghost-button"} onClick={() => setAutopilotEnabled(value => !value)}>{autopilotEnabled ? "Pausar agentes" : "Activar trabajo autónomo"}</button></div><div className="flex flex-wrap gap-3 mt-4 text-[11px]"><span className="pill pill-ready"><span className="dot" />{autopilotEnabled ? (autopilotRunning ? "Agente trabajando" : "Autopiloto activo") : "Autopiloto pausado"}</span><span className="pill pill-idle">{tasks.filter(task => !task.done && (task.status || "Pendiente") === "Pendiente").length} en cola</span><span className="pill pill-review">{tasks.filter(task => task.status === "Revisión").length} para revisar</span></div></section>
               {showTaskForm && <div className="panel p-5 mb-5"><div className="text-sm font-semibold mb-4">Nueva tarea</div><div className="grid grid-cols-1 md:grid-cols-[1fr_260px_auto] gap-3"><input className="input-dark" placeholder="Describe qué hay que hacer..." value={taskTitle} onChange={e => setTaskTitle(e.target.value)} onKeyDown={e => e.key === "Enter" && addTask()} /><select className="input-dark" value={taskOwner} onChange={e => setTaskOwner(e.target.value)}>{agents.map(agent => <option key={agent.id}>{agent.name}</option>)}</select><button className="action-button" onClick={addTask}>Añadir tarea</button></div></div>}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5"><div className="panel p-4"><div className="text-[11px] text-slate-500">Total de tareas</div><div className="text-2xl font-semibold mt-2">{tasks.length}</div></div><div className="panel p-4"><div className="text-[11px] text-slate-500">Pendientes</div><div className="text-2xl font-semibold mt-2">{tasks.length - completed}</div></div><div className="panel p-4"><div className="text-[11px] text-slate-500">Completadas</div><div className="text-2xl font-semibold mt-2">{completed}</div></div></div>
               <section className="panel p-5"><div className="text-sm font-semibold mb-2">Bandeja de trabajo</div>{tasks.map(task => <article className="py-4 border-b last:border-0" style={{ borderColor: "var(--line)" }} key={task.id}><div className="flex items-start gap-3"><input className="task-check mt-1" type="checkbox" checked={task.done} onChange={() => toggleTask(task.id)} /><div className="flex-1 min-w-0"><div className={`text-xs ${task.done ? "line-through text-slate-600" : "text-slate-200"}`}>{task.title}</div><div className="text-[10px] text-slate-500 mt-1">{task.owner} · {task.priority}</div></div><span className={`pill ${task.status === "Error" ? "pill-review" : task.status === "Revisión" ? "pill-review" : task.done ? "pill-ready" : "pill-idle"}`}>{task.done ? "Completada" : task.status || "Pendiente"}</span></div>{task.result && <div className="mt-3 ml-7"><button className="text-[11px] text-teal-300 hover:text-teal-200" onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}>{expandedTask === task.id ? "Ocultar entregable" : task.status === "Error" ? "Ver error" : "Ver entregable"}</button>{expandedTask === task.id && <div className="mt-2 rounded-lg p-4 text-xs leading-6 text-slate-300 whitespace-pre-wrap" style={{ background: "rgba(0,0,0,.2)", border: "1px solid var(--line)" }}>{task.result}</div>}</div>}{task.status === "Revisión" && <div className="flex justify-end gap-2 mt-3"><button className="ghost-button !py-1.5" onClick={() => retryTask(task.id)}>Solicitar otra versión</button><button className="action-button !py-1.5" onClick={() => approveTask(task.id)}>Aprobar y completar</button></div>}{task.status === "Error" && <div className="flex justify-end mt-3"><button className="ghost-button !py-1.5" onClick={() => retryTask(task.id)}>Reintentar tarea</button></div>}</article>)}{tasks.length === 0 && <p className="text-xs text-slate-500 py-6">Todavía no hay tareas. Crea la primera para empezar.</p>}</section>
