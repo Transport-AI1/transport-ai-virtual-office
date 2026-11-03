@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAgent } from "@/lib/agents";
+import { AGENT_SHARED_RULES, getAgent } from "@/lib/agents";
 
 export const runtime = "nodejs";
 
@@ -33,7 +33,6 @@ export async function POST(request: NextRequest) {
     return [{ role: row.role, content: row.content.slice(0, 4000) }];
   });
 
-  // GPT4All exposes an OpenAI-compatible local API when its API server is enabled.
   const baseUrl = (process.env.GPT4ALL_BASE_URL || "http://127.0.0.1:4891/v1").replace(/\/$/, "");
   const model = process.env.GPT4ALL_MODEL || "Llama 3.2 3B Instruct";
 
@@ -44,17 +43,19 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model,
         stream: false,
+        max_tokens: 1200,
         messages: [
           {
             role: "system",
-            content: agent.systemPrompt + "\n\nEres un trabajador de una oficina virtual. Responde en español, con pasos concretos y entregables. No afirmes haber ejecutado acciones externas. Si te piden algo que requiere acceso a otras herramientas, explica que puedes preparar el trabajo pero necesitas una integración y aprobación humana."
+            content: agent.systemPrompt + "\n\n" + AGENT_SHARED_RULES + "\n\nEres un trabajador de una oficina virtual. Responde en español, con pasos concretos y entregables. No afirmes haber ejecutado acciones externas. Si te piden algo que requiere acceso a otras herramientas, explica que puedes preparar el trabajo pero necesitas una integración y aprobación humana."
           },
           ...safeHistory,
           { role: "user", content: message }
         ],
-        temperature: 0.35
+        temperature: 0.3,
+        top_p: 0.9
       }),
-      signal: AbortSignal.timeout(120000)
+      signal: AbortSignal.timeout(180000)
     });
 
     if (!response.ok) {
