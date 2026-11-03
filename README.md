@@ -11,7 +11,7 @@ Oficina virtual privada para organizar el trabajo de Transport AI con nueve perf
 - Bandeja de tareas con ejecución autónoma secuencial por especialista, entregables guardados y aprobación humana.
 - CRM local para registrar empresas, contactos, estado comercial y próximos seguimientos.
 - Copia de seguridad descargable de tareas, perfiles, contactos y conversaciones.
-- Historial de conversaciones y tareas guardado en el navegador mediante `localStorage`.
+- Memoria compartida entre especialistas (hasta 30 entregables recientes) guardada en el navegador mediante `localStorage`.
 - API de servidor para conectar un motor local compatible con OpenAI.
 - Comprobación de conectividad y modelos disponibles en el servidor local.
 - Director que descompone objetivos en tareas y las asigna automáticamente a especialistas.
@@ -50,8 +50,8 @@ Abre http://localhost:3000.
 
 ## Límites importantes
 
-- Los datos se guardan en el navegador; no se sincronizan entre usuarios o dispositivos.
-- Los agentes pueden ejecutar automáticamente el trabajo intelectual de las tareas asignadas y preparar entregables. La ejecución se realiza de una en una y queda pendiente de revisión humana.
+- La memoria, las tareas y el CRM se guardan en el navegador; los agentes comparten ese contexto en ese mismo navegador, pero no se sincroniza entre usuarios o dispositivos ni constituye una base de datos de servidor.
+- Los agentes pueden ejecutar automáticamente el trabajo intelectual de las tareas asignadas. Cada especialista puede consultar hasta cinco recuerdos recientes y un segundo especialista realiza una revisión cruzada; los resultados quedan pendientes de aprobación humana.
 - No tienen acceso automático a correo, WhatsApp, bancos, CRM ni repositorios.
 - Cualquier integración o acción externa necesitará permisos, controles y aprobación humana.
 - Una web alojada en Vercel no puede acceder al servidor `127.0.0.1` del Mac. El motor local y Next.js deben ejecutarse en el mismo equipo.
