@@ -130,6 +130,7 @@ export default function Home() {
       try {
         const saved = localStorage.getItem("transport-ai-dashboard-tasks");
         if (saved) setTasks(JSON.parse(saved) as Task[]);
+        setAutopilotEnabled(localStorage.getItem("transport-ai-autopilot") === "true");
       } catch {
         setNotice("No se pudieron sincronizar las tareas del despacho.");
       }
