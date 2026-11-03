@@ -8,13 +8,13 @@ Oficina virtual privada para organizar el trabajo de Transport AI con nueve perf
 - Sede 3D de dos plantas con nueve despachos.
 - Conversación individual con cada agente especializado.
 - Director de Operaciones para preparar planes de trabajo.
-- Gestión manual de tareas, responsables y prioridades.
+- Bandeja de tareas con ejecución autónoma secuencial por especialista, entregables guardados y aprobación humana.
 - CRM local para registrar empresas, contactos, estado comercial y próximos seguimientos.
 - Copia de seguridad descargable de tareas, perfiles, contactos y conversaciones.
 - Historial de conversaciones y tareas guardado en el navegador mediante `localStorage`.
 - API de servidor para conectar un motor local compatible con OpenAI.
 - Comprobación de conectividad y modelos disponibles en el servidor local.
-- Sin necesidad de una API de pago ni acciones externas automáticas.
+- Modo autónomo local: procesa tareas pendientes mientras la oficina permanece abierta y GPT4All está activo.\n- Sin necesidad de una API de pago ni acciones externas automáticas.
 
 ## Motor de IA local
 
@@ -49,7 +49,7 @@ Abre http://localhost:3000.
 ## Límites importantes
 
 - Los datos se guardan en el navegador; no se sincronizan entre usuarios o dispositivos.
-- Los agentes redactan, analizan y preparan entregables, pero no ejecutan tareas externas por su cuenta.
+- Los agentes pueden ejecutar automáticamente el trabajo intelectual de las tareas asignadas y preparar entregables. La ejecución se realiza de una en una y queda pendiente de revisión humana.
 - No tienen acceso automático a correo, WhatsApp, bancos, CRM ni repositorios.
 - Cualquier integración o acción externa necesitará permisos, controles y aprobación humana.
 - Una web alojada en Vercel no puede acceder al servidor `127.0.0.1` del Mac. El motor local y Next.js deben ejecutarse en el mismo equipo.
