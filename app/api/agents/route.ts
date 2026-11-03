@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         model,
         stream: false,
-        max_tokens: 1200,
+        max_tokens: 500,
         messages: [
           {
             role: "system",
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
         temperature: 0.3,
         top_p: 0.9
       }),
-      signal: AbortSignal.timeout(180000)
+      signal: AbortSignal.timeout(240000)
     });
 
     if (!response.ok) {
@@ -78,9 +78,12 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ reply, model: data.model || model, agent: agent.name });
-  } catch {
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === "TimeoutError";
     return NextResponse.json({
-      error: "No se puede conectar con el servidor local de IA. Comprueba que está iniciado y que la dirección configurada es correcta."
-    }, { status: 503 });
+      error: timedOut
+        ? "El modelo local está tardando demasiado. Prueba con una instrucción más breve."
+        : "No se puede conectar con el servidor local de IA. Comprueba que está iniciado y que la dirección configurada es correcta."
+    }, { status: timedOut ? 504 : 503 });
   }
 }
