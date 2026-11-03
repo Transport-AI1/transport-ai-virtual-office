@@ -72,7 +72,7 @@ No expongas el servidor local a Internet ni lo enlaces a `0.0.0.0` sin autentica
 
 En la sección **Director de operaciones**, el botón **Comprobar conexión** consulta `/api/health` y muestra si el servidor local responde y si el modelo configurado aparece en `/v1/models`. Esta comprobación no genera texto ni consume tokens de inferencia.
 
-La sección **Configuración** permite descargar una copia JSON de las tareas, los perfiles y las conversaciones guardadas en el navegador. El archivo puede contener información interna: guárdalo en un lugar privado.
+La sección **Configuración** permite descargar una copia JSON de las tareas, los perfiles, los contactos del CRM y las conversaciones guardadas en el navegador. El archivo puede contener información interna: guárdalo en un lugar privado.
 
 ## Validación automática
 
