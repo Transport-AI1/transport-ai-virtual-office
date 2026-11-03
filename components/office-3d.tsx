@@ -17,6 +17,124 @@ const staff = [
   { id:"security", name:"Seguridad y calidad", role:"Auditoría · Protección", area:"Seguridad", color:"#a6b4c8", mission:"Revisa seguridad, privacidad, permisos, calidad y riesgos de cada proyecto.", duties:["Revisar privacidad y permisos","Auditar entregables","Definir pruebas de calidad","Detectar riesgos"], tools:["Seguridad","QA","Privacidad"] }
 ] as const;
 
+function Desk({color,selected}:{color:string;selected:boolean}) {
+  return <group>
+    <mesh position={[0,.76,-.38]} castShadow receiveShadow><boxGeometry args={[2.05,.13,1.05]}/><meshStandardMaterial color="#8b6849" roughness={.42}/></mesh>
+    <mesh position={[0,.68,-.38]}><boxGeometry args={[1.9,.035,.92]}/><meshStandardMaterial color="#b28a61" roughness={.55}/></mesh>
+    {[[-.88,.36,-.78],[.88,.36,-.78],[-.88,.36,.02],[.88,.36,.02]].map((p:any,i:number)=><mesh key={i} position={p}><boxGeometry args={[.075,.72,.075]}/><meshStandardMaterial color="#333b40" metalness={.65} roughness={.3}/></mesh>)}
+    <mesh position={[0,1.13,-.68]} castShadow><boxGeometry args={[.92,.58,.075]}/><meshStandardMaterial color="#111a20" metalness={.35} roughness={.25}/></mesh>
+    <mesh position={[0,1.13,-.635]}><planeGeometry args={[.82,.47]}/><meshStandardMaterial color={selected?"#285c5a":"#29434a"} emissive={color} emissiveIntensity={selected?.22:.08} roughness={.35}/></mesh>
+    <mesh position={[0,.84,-.63]}><boxGeometry args={[.11,.12,.11]}/><meshStandardMaterial color="#68777a" metalness={.7}/></mesh>
+    <mesh position={[0,.83,-.34]}><boxGeometry args={[.68,.025,.22]}/><meshStandardMaterial color="#20292d" roughness={.7}/></mesh>
+    <mesh position={[.67,.84,-.28]}><cylinderGeometry args={[.075,.075,.1,18]}/><meshStandardMaterial color="#d8ded8"/></mesh>
+    <mesh position={[-.72,.9,-.58]}><cylinderGeometry args={[.085,.07,.22,16]}/><meshStandardMaterial color="#405d52"/></mesh>
+    <mesh position={[-.72,1.04,-.58]}><sphereGeometry args={[.12,10,8]}/><meshStandardMaterial color="#6f9b76" roughness={.8}/></mesh>
+    <mesh position={[0,.91,.18]}><boxGeometry args={[.5,.025,.12]}/><meshStandardMaterial color="#293238"/></mesh>
+  </group>;
+}
+
+function OfficeChair({position=[0,0,0]}:{position?:[number,number,number]}) {
+  return <group position={position}>
+    <mesh position={[0,.56,0]} castShadow><boxGeometry args={[.82,.16,.78]}/><meshStandardMaterial color="#252d32" roughness={.78}/></mesh>
+    <mesh position={[0,1.03,.34]} castShadow><boxGeometry args={[.78,.9,.13]}/><meshStandardMaterial color="#303a40" roughness={.82}/></mesh>
+    <mesh position={[0,.39,0]}><cylinderGeometry args={[.075,.09,.28,12]}/><meshStandardMaterial color="#7e898b" metalness={.75}/></mesh>
+    {Array.from({length:5},(_,i)=>{const a=i*Math.PI*2/5;return <group key={i} rotation={[0,a,0]}><mesh position={[.28,.18,0]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[.025,.025,.48,8]}/><meshStandardMaterial color="#687477" metalness={.7}/></mesh><mesh position={[.49,.1,0]}><sphereGeometry args={[.09,10,8]}/><meshStandardMaterial color="#252d32"/></mesh></group>;})}
+  </group>;
+}
+
+function Plant({position,scale=1}:{position:[number,number,number];scale?:number}) {
+  return <group position={position} scale={scale}>
+    <mesh position={[0,.25,0]}><cylinderGeometry args={[.22,.17,.48,16]}/><meshStandardMaterial color="#a58a6c" roughness={.85}/></mesh>
+    {Array.from({length:7},(_,i)=><mesh key={i} position={[Math.sin(i*2.4)*.16,.67+(i%3)*.1,Math.cos(i*2.4)*.16]} rotation={[.2, i*1.2, Math.sin(i)*.35]}><sphereGeometry args={[.13,.0+10,8]}/><meshStandardMaterial color={i%2?"#47785e":"#638d69"} roughness={.9}/></mesh>)}
+  </group>;
+}
+
+function GlassPartition({position,size}:{position:[number,number,number];size:[number,number,number]}) {
+  return <group position={position}>
+    <mesh castShadow><boxGeometry args={size}/><meshPhysicalMaterial color="#b9d8d8" transparent opacity={.18} roughness={.12} metalness={.25} transmission={.12}/></mesh>
+    <mesh position={[-size[0]/2,0,0]}><boxGeometry args={[.055,size[1],.07]}/><meshStandardMaterial color="#39484b" metalness={.75} roughness={.28}/></mesh>
+    <mesh position={[size[0]/2,0,0]}><boxGeometry args={[.055,size[1],.07]}/><meshStandardMaterial color="#39484b" metalness={.75} roughness={.28}/></mesh>
+    <mesh position={[0,-size[1]/2,0]}><boxGeometry args={[size[0],.06,.08]}/><meshStandardMaterial color="#39484b" metalness={.75}/></mesh>
+    <mesh position={[0,size[1]/2,0]}><boxGeometry args={[size[0],.06,.08]}/><meshStandardMaterial color="#39484b" metalness={.75}/></mesh>
+  </group>;
+}
+
+function OfficeRoom({position,agentIndex,selected,onSelect,label}:{position:[number,number,number];agentIndex:number;selected:boolean;onSelect:(i:number)=>void;label:string}) {
+  const person = staff[agentIndex];
+  return <group position={position} onClick={(e)=>{e.stopPropagation();onSelect(agentIndex);}}>
+    <mesh position={[0,.06,0]} receiveShadow><boxGeometry args={[7.5,.12,5.7]}/><meshStandardMaterial color={selected?"#c8c0b0":"#a9a79d"} roughness={.88}/></mesh>
+    <mesh position={[0,.13,0]}><boxGeometry args={[7.25,.035,5.45]}/><meshStandardMaterial color="#c9c5b9" roughness={.92}/></mesh>
+    <GlassPartition position={[0,1.48,-2.79]} size={[7.5,2.85,.07]}/>
+    <GlassPartition position={[-3.69,1.48,0]} size={[5.65,2.85,.07]}/>
+    <GlassPartition position={[3.69,1.48,0]} size={[5.65,2.85,.07]}/>
+    <GlassPartition position={[-2.05,1.48,2.79]} size={[3.35,2.85,.07]}/>
+    <GlassPartition position={[2.05,1.48,2.79]} size={[3.35,2.85,.07]}/>
+    <mesh position={[0,1.48,-2.72]}><boxGeometry args={[2.2,.035,.025]}/><meshStandardMaterial color={person.color} emissive={person.color} emissiveIntensity={.3}/></mesh>
+    <group position={[0,0,-.55]}><Desk color={person.color} selected={selected}/></group>
+    <OfficeChair position={[0,0,1.1]}/>
+    <mesh position={[0,2.94,-.1]}><boxGeometry args={[2.6,.055,1.15]}/><meshStandardMaterial color="#f2e9d7" emissive="#e5d4b5" emissiveIntensity={.45}/></mesh>
+    <mesh position={[0,2.9,-.1]}><boxGeometry args={[2.2,.025,.8]}/><meshStandardMaterial color="#fff5dc" emissive="#fff0cc" emissiveIntensity={.35}/></mesh>
+    <Plant position={[-2.95,.15,-2.15]} scale={.8}/>
+    <Html position={[0,3.45,0]} center distanceFactor={13} style={{pointerEvents:"none"}}>
+      <div style={{background:"#172326ed",border:"1px solid "+(selected?person.color:"#718080"),borderRadius:7,padding:"7px 12px",color:"#f4f3ec",fontSize:10,letterSpacing:".08em",whiteSpace:"nowrap",boxShadow:"0 8px 22px #0005"}}>{label.toUpperCase()}</div>
+    </Html>
+    {selected&&<mesh position={[0,.2,2.84]}><boxGeometry args={[1.4,.045,.06]}/><meshStandardMaterial color={person.color} emissive={person.color} emissiveIntensity={.8}/></mesh>}
+  </group>;
+}
+
+function Reception({position}:{position:[number,number,number]}) {
+  return <group position={position}>
+    <mesh position={[0,.62,0]} castShadow><boxGeometry args={[4.2,1.15,1.15]}/><meshStandardMaterial color="#343f3e" roughness={.42}/></mesh>
+    <mesh position={[0,1.2,.05]}><boxGeometry args={[4.05,.055,1.08]}/><meshStandardMaterial color="#a9845d" roughness={.35}/></mesh>
+    <mesh position={[0,.64,.59]}><boxGeometry args={[3.8,.72,.035]}/><meshStandardMaterial color="#536b66" metalness={.25}/></mesh>
+    <Html position={[0,.68,.63]} center distanceFactor={11} style={{pointerEvents:"none"}}><div style={{color:"#f3f1e8",fontSize:12,letterSpacing:3,fontWeight:600,whiteSpace:"nowrap"}}>TRANSPORT AI</div></Html>
+  </group>;
+}
+
+function ConferenceRoom({position}:{position:[number,number,number]}) {
+  return <group position={position}>
+    <mesh position={[0,.1,0]}><boxGeometry args={[7.2,.18,4.2]}/><meshStandardMaterial color="#c8c2b5" roughness={.9}/></mesh>
+    <mesh position={[0,.76,0]} castShadow><boxGeometry args={[3.6,.14,1.5]}/><meshStandardMaterial color="#775b42" roughness={.4}/></mesh>
+    {[[-1.3,.4,-.72],[1.3,.4,-.72],[-1.3,.4,.72],[1.3,.4,.72],[-2.1,.4,0],[2.1,.4,0]].map((p:any,i:number)=><group key={i} position={p}><mesh><boxGeometry args={[.58,.72,.58]}/><meshStandardMaterial color="#303a3d" roughness={.8}/></mesh><mesh position={[0,.42,-.19]}><boxGeometry args={[.58,.12,.18]}/><meshStandardMaterial color="#303a3d"/></mesh></group>)}
+    <mesh position={[0,1.55,-1.85]}><boxGeometry args={[2.8,1.45,.06]}/><meshStandardMaterial color="#1d3032" emissive="#173f40" emissiveIntensity={.18}/></mesh>
+    <Plant position={[-3,.12,-1.5]} scale={.9}/>
+  </group>;
+}
+
+function BuildingScene({selected,onSelect}:{selected:number;onSelect:(i:number)=>void}) {
+  const columns=[-8.1,0,8.1];
+  const rows=[-7.35,-.35,6.65];
+  return <>
+    <color attach="background" args={["#151c1b"]}/>
+    <fog attach="fog" args={["#151c1b",34,62]}/>
+    <ambientLight intensity={.72}/>
+    <hemisphereLight args={["#f4eee1","#53605a",1.05]}/>
+    <directionalLight position={[10,22,14]} intensity={2.15} castShadow shadow-mapSize={[1024,1024]} shadow-camera-far={55}/>
+    <pointLight position={[-9,5,9]} intensity={28} color="#f0d5a6" distance={22}/>
+    <pointLight position={[10,5,9]} intensity={22} color="#a5c8c2" distance={20}/>
+    <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.32,0]} receiveShadow><planeGeometry args={[46,44]}/><meshStandardMaterial color="#202927" roughness={.96}/></mesh>
+    <mesh position={[0,-.04,0]} receiveShadow castShadow><boxGeometry args={[28,.48,30]}/><meshStandardMaterial color="#5a625c" roughness={.82}/></mesh>
+    <mesh position={[0,.22,0]} receiveShadow><boxGeometry args={[27.6,.08,29.6]}/><meshStandardMaterial color="#b5b0a4" roughness={.82}/></mesh>
+    <mesh position={[0,1.75,-14.75]} castShadow><boxGeometry args={[27.6,3.2,.22]}/><meshStandardMaterial color="#303d3a" roughness={.8}/></mesh>
+    <mesh position={[-13.75,1.75,0]} castShadow><boxGeometry args={[.22,3.2,29.5]}/><meshStandardMaterial color="#303d3a" roughness={.8}/></mesh>
+    <mesh position={[13.75,1.75,0]} castShadow><boxGeometry args={[.22,3.2,29.5]}/><meshStandardMaterial color="#303d3a" roughness={.8}/></mesh>
+    <GlassPartition position={[0,1.75,14.72]} size={[27.5,3.2,.1]}/>
+    <mesh position={[0,.3,0]}><boxGeometry args={[.035,.03,28.8]}/><meshStandardMaterial color="#8c897f"/></mesh>
+    {columns.map((x,i)=>rows.map((z,j)=><OfficeRoom key={staff[i+j*3].id} position={[x,.3,z]} agentIndex={i+j*3} selected={selected===i+j*3} onSelect={onSelect} label={staff[i+j*3].area}/>))}
+    <Reception position={[-7.5,.3,11.6]}/>
+    <ConferenceRoom position={[7.1,.3,11.4]}/>
+    <group position={[0,.3,12.4]}>
+      <mesh position={[0,.35,0]} castShadow><boxGeometry args={[3.2,.7,1.05]}/><meshStandardMaterial color="#59645d" roughness={.85}/></mesh>
+      <mesh position={[0,.72,-.15]}><boxGeometry args={[3.15,.08,.9]}/><meshStandardMaterial color="#b49a78" roughness={.55}/></mesh>
+      {[-.9,0,.9].map((x)=><mesh key={x} position={[x,.83,-.15]}><boxGeometry args={[.12,.12,.12]}/><meshStandardMaterial color="#d4c7b2"/></mesh>)}
+    </group>
+    <Plant position={[-12,.3,12]} scale={1.5}/>
+    <Plant position={[12,.3,12]} scale={1.5}/>
+    <Html position={[0,2.6,-14.4]} center distanceFactor={18} style={{pointerEvents:"none"}}><div style={{fontSize:13,letterSpacing:".32em",fontWeight:700,color:"#e9e5d9",whiteSpace:"nowrap",textShadow:"0 2px 12px #000"}}>TRANSPORT AI <span style={{color:"#8eb7a7"}}>·</span> HEADQUARTERS</div></Html>
+    <OrbitControls makeDefault minDistance={18} maxDistance={48} maxPolarAngle={Math.PI/2.03} target={[0,1,0]} enableDamping dampingFactor={.08}/>
+  </>;
+}
+
 type Task = { id:string | number; title:string; owner:string; priority:"Alta"|"Media"|"Baja"; done:boolean; createdAt?:string };
 type ChatLine = { role:"user"|"assistant"; content:string };
 
