@@ -14,7 +14,9 @@ Oficina virtual privada para organizar el trabajo de Transport AI con nueve perf
 - Historial de conversaciones y tareas guardado en el navegador mediante `localStorage`.
 - API de servidor para conectar un motor local compatible con OpenAI.
 - Comprobación de conectividad y modelos disponibles en el servidor local.
-- Director que descompone objetivos en tareas y las asigna automáticamente a especialistas.\n- Modo autónomo local: procesa tareas pendientes mientras la oficina permanece abierta y GPT4All está activo.\n- Sin necesidad de una API de pago ni acciones externas automáticas.
+- Director que descompone objetivos en tareas y las asigna automáticamente a especialistas.
+- Modo autónomo local: procesa tareas pendientes mientras la oficina permanece abierta y GPT4All está activo.
+- Sin necesidad de una API de pago ni acciones externas automáticas.
 
 ## Motor de IA local
 
