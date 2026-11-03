@@ -52,7 +52,7 @@ function BuildingScene({selected,onSelect}:{selected:number;onSelect:(i:number)=
     <color attach="background" args={["#0b141d"]}/>
     <fog attach="fog" args={["#0b141d",24,48]}/>
     <ambientLight intensity={1.1}/>
-    <directionalLight position={[12,20,12]} intensity={2.1} castShadow shadow-mapSize={[2048,2048]}/>
+    <directionalLight position={[12,20,12]} intensity={2.1} castShadow shadow-mapSize={[1024,1024]}/>
     <pointLight position={[-10,8,-8]} intensity={55} color="#53c8c0" distance={28}/>
     <mesh rotation={[-Math.PI/2,0,0]} position={[0,-.3,0]} receiveShadow><planeGeometry args={[40,34]}/><meshStandardMaterial color="#111b24"/></mesh>
     <gridHelper args={[40,40,"#2b414c","#1b2b36"]} position={[0,-.28,0]}/>
@@ -163,7 +163,7 @@ export default function Office3D() {
     </div>
     {view==="building"&&<div className="panel overflow-hidden">
       <div style={{height:"min(65vh,650px)",minHeight:440}}>
-        <Canvas shadows camera={{position:[19,17,22],fov:38}} dpr={[1,1.5]}><BuildingScene selected={selected} onSelect={enterRoom}/></Canvas>
+        <Canvas shadows camera={{position:[19,17,22],fov:38}} dpr={[1,1.25]}><BuildingScene selected={selected} onSelect={enterRoom}/></Canvas>
       </div>
       <div className="px-4 py-3 border-t flex flex-wrap justify-between gap-2 text-[10px] text-slate-500" style={{borderColor:"var(--line)"}}><span>Arrastra para girar · Rueda para acercar · Pulsa en un despacho para entrar</span><span>2 plantas · 9 despachos · 1 sede</span></div>
     </div>}
