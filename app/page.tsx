@@ -278,7 +278,7 @@ export default function Home() {
                 <div className="panel stat-card"><div className="flex justify-between"><span className="stat-label">Agentes configurados</span><Users size={16} className="text-teal-300" /></div><div className="stat-value">09 <span className="text-xs font-normal text-slate-500">/ 09</span></div><div className="text-[10px] text-slate-500 mt-1">Equipo inicial completo</div></div>
                 <div className="panel stat-card"><div className="flex justify-between"><span className="stat-label">Tareas pendientes</span><ClipboardList size={16} className="text-amber-300" /></div><div className="stat-value">{tasks.length - completed}<span className="text-xs font-normal text-slate-500"> activas</span></div><div className="text-[10px] text-slate-500 mt-1">Organizadas en el panel</div></div>
                 <div className="panel stat-card"><div className="flex justify-between"><span className="stat-label">Tareas completadas</span><CheckCircle2 size={16} className="text-emerald-300" /></div><div className="stat-value">{completed.toString().padStart(2, "0")}</div><div className="text-[10px] text-slate-500 mt-1">Marcadas manualmente</div></div>
-                <div className="panel stat-card"><div className="flex justify-between"><span className="stat-label">Proyectos activos</span><BriefcaseBusiness size={16} className="text-violet-300" /></div><div className="stat-value">03</div><div className="text-[10px] text-slate-500 mt-1">Espacio preparado para gestión</div></div>
+                <div className="panel stat-card"><div className="flex justify-between"><span className="stat-label">Contactos comerciales</span><Users size={16} className="text-violet-300" /></div><div className="stat-value">{clients.length.toString().padStart(2, "0")}</div><div className="text-[10px] text-slate-500 mt-1">Registrados en el CRM local</div></div>
               </div>
 
               <div className="grid grid-cols-1 xl:grid-cols-[1.55fr_1fr] gap-4 mb-5">
@@ -299,7 +299,7 @@ export default function Home() {
                   <div className="activity-line"><span className="activity-dot" /><div className="text-xs text-slate-200">Oficina virtual inicializada</div><div className="text-[10px] text-slate-500 mt-1">Panel de dirección disponible</div></div>
                   <div className="activity-line"><span className="activity-dot" /><div className="text-xs text-slate-200">9 perfiles de agente creados</div><div className="text-[10px] text-slate-500 mt-1">Departamentos y responsabilidades definidos</div></div>
                   <div className="activity-line"><span className="activity-dot" /><div className="text-xs text-slate-200">Control humano activado</div><div className="text-[10px] text-slate-500 mt-1">Sin acciones externas automáticas</div></div>
-                  <div className="mt-4 rounded-lg p-3 text-[10px] leading-relaxed text-slate-400" style={{ background: "rgba(98,213,208,.055)", border: "1px solid rgba(98,213,208,.1)" }}><Sparkles size={13} className="inline mr-2 text-teal-300" />La conexión con modelos de IA se añadirá en una fase posterior.</div>
+                  <div className="mt-4 rounded-lg p-3 text-[10px] leading-relaxed text-slate-400" style={{ background: "rgba(98,213,208,.055)", border: "1px solid rgba(98,213,208,.1)" }}><Sparkles size={13} className="inline mr-2 text-teal-300" />El motor de IA local puede conectarse desde los despachos y el Director de operaciones.</div>
                 </section>
               </div>
 
