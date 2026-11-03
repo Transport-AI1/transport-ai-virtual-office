@@ -10,7 +10,7 @@ Cada despacho ofrece:
 - Asignación y seguimiento de tareas.
 - Historial de conversación y tareas guardado en el navegador mediante localStorage.
 
-La persistencia actual es local al navegador: no sincroniza automáticamente entre dispositivos ni usuarios y se pierde si se borra el almacenamiento del sitio.
+La memoria compartida actual se guarda en `localStorage` del navegador. Conserva hasta 30 entregables recientes y cada ejecución puede consultar los cinco más recientes. Los agentes de este navegador comparten el mismo contexto, pero no existe todavía una base de datos de servidor: no sincroniza entre dispositivos o usuarios y se pierde si se borra el almacenamiento del sitio.
 
 ## Agentes y motor de IA local
 
@@ -82,11 +82,11 @@ El flujo de GitHub Actions `.github/workflows/validate.yml` instala dependencias
 
 Los agentes pueden analizar instrucciones, redactar, planificar y preparar entregables dentro de su conversación. El Director también puede convertir un objetivo en una cola estructurada mediante `POST /api/plan-tasks`, asignando cada tarea a uno de los especialistas. Desde el panel del Director, **Crear tareas y activar agentes** crea la cola y activa el modo autónomo. La bandeja de tareas permite asignar trabajo y activar el modo autónomo. Con el modo activo, el navegador procesa secuencialmente las tareas pendientes mediante `POST /api/execute-task`, usando el especialista asignado y el motor local. El resultado queda guardado como entregable en estado **Revisión**; una persona debe aprobarlo para marcar la tarea como completada. Los errores se pueden reintentar.
 
-La ejecución autónoma actual solo realiza trabajo intelectual dentro del modelo local: redactar, analizar, planificar y preparar entregables. Requiere que la página de la oficina permanezca abierta y que GPT4All esté activo. No es un servicio 24/7 y se pausa si el navegador o el Mac se apagan.\n\nNo tienen acceso automático a correo, WhatsApp, bancos, clientes, GitHub ni otros servicios. No envían mensajes, realizan pagos, publican ni despliegan. Para eso hacen falta integraciones reales, permisos y aprobación humana.
+La ejecución autónoma actual solo realiza trabajo intelectual dentro del modelo local: redactar, analizar, planificar y preparar entregables. Cada tarea puede consultar los cinco recuerdos recientes del equipo. Tras generar el entregable, un especialista de otro departamento realiza una revisión cruzada breve; por ejemplo, Ingeniería es revisada por Seguridad y Marketing por Diseño. La revisión es una segunda inferencia del mismo modelo local y puede aumentar el tiempo de ejecución. Requiere que la página de la oficina permanezca abierta y que GPT4All esté activo. No es un servicio 24/7 y se pausa si el navegador o el Mac se apagan.\n\nLa memoria compartida no es almacenamiento en nube ni sustituye una base de datos. No tienen acceso automático a correo, WhatsApp, bancos, clientes, GitHub ni otros servicios. No envían mensajes, realizan pagos, publican ni despliegan. Para eso hacen falta integraciones reales, permisos y aprobación humana.
 
 ## Siguientes fases
 
-1. Base de datos compartida y autenticación.
+1. Base de datos compartida en servidor (por ejemplo, Supabase) y autenticación.
 2. Bandeja central de tareas conectada al Director de Operaciones.
 3. Ejecutor persistente en segundo plano, con cola compartida y reanudación tras reinicios.\n4. Herramientas seguras y permisos granulares para cada agente.
 4. Integraciones aprobadas (correo, CRM, WhatsApp, GitHub y calendario).
