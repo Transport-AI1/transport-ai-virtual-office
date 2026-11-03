@@ -89,6 +89,6 @@ La ejecución autónoma actual solo realiza trabajo intelectual dentro del model
 1. Base de datos compartida en servidor (por ejemplo, Supabase) y autenticación.
 2. Bandeja central de tareas conectada al Director de Operaciones.
 3. Ejecutor persistente en segundo plano, con cola compartida y reanudación tras reinicios.\n4. Herramientas seguras y permisos granulares para cada agente.
-4. Integraciones aprobadas (correo, CRM, WhatsApp, GitHub y calendario).
-5. Registro de actividad y auditoría de acciones.
-6. Edificio 3D con más detalle visual y navegación por plantas.
+5. Integraciones aprobadas (correo, CRM, WhatsApp, GitHub y calendario).
+6. Registro de actividad y auditoría de acciones.
+7. Edificio 3D con más detalle visual y navegación por plantas.
